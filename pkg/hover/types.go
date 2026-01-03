@@ -73,11 +73,11 @@ type Token struct {
 type TokenType string
 
 const (
-	TokenUnknown    TokenType = "unknown"
-	TokenIdentifier TokenType = "identifier"
-	TokenKeyword    TokenType = "keyword"
-	TokenFunction   TokenType = "function"
-	TokenOperator   TokenType = "operator"
-	TokenLiteral    TokenType = "literal"
+	TokenUnknown     TokenType = "unknown"
+	TokenIdentifier  TokenType = "identifier"
+	TokenKeyword     TokenType = "keyword"
+	TokenFunction    TokenType = "function"
+	TokenOperator    TokenType = "operator"
+	TokenLiteral     TokenType = "literal"
 	TokenPunctuation TokenType = "punctuation"
 )

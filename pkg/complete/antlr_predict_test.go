@@ -9,45 +9,45 @@ func TestGetExpectedTokensAtPosition(t *testing.T) {
 	// Since CQL allows most keywords as identifiers, we get many tokens.
 	// This test verifies the API works and captures tokens, not that it's "smart".
 	tests := []struct {
-		name              string
-		query             string
-		position          int
-		minExpectedTokens int  // Minimum expected token count
+		name               string
+		query              string
+		position           int
+		minExpectedTokens  int  // Minimum expected token count
 		expectSomeKeywords bool // Whether we expect to get any keywords
 	}{
 		{
-			name:              "empty query - may not capture from lexer error",
-			query:             "",
-			position:          0,
-			minExpectedTokens: 0, // May be 0 due to lexer error handling
+			name:               "empty query - may not capture from lexer error",
+			query:              "",
+			position:           0,
+			minExpectedTokens:  0, // May be 0 due to lexer error handling
 			expectSomeKeywords: false,
 		},
 		{
-			name:              "after SELECT - expects many tokens including keywords",
-			query:             "SELECT ",
-			position:          7,
-			minExpectedTokens: 10, // CQL allows many tokens here
+			name:               "after SELECT - expects many tokens including keywords",
+			query:              "SELECT ",
+			position:           7,
+			minExpectedTokens:  10, // CQL allows many tokens here
 			expectSomeKeywords: true,
 		},
 		{
-			name:              "after FROM - expects identifier or keywords-as-identifiers",
-			query:             "SELECT * FROM ",
-			position:          14,
-			minExpectedTokens: 10,
+			name:               "after FROM - expects identifier or keywords-as-identifiers",
+			query:              "SELECT * FROM ",
+			position:           14,
+			minExpectedTokens:  10,
 			expectSomeKeywords: true,
 		},
 		{
-			name:              "after WHERE - expects column names or keywords-as-columns",
-			query:             "SELECT * FROM users WHERE ",
-			position:          26,
-			minExpectedTokens: 10,
+			name:               "after WHERE - expects column names or keywords-as-columns",
+			query:              "SELECT * FROM users WHERE ",
+			position:           26,
+			minExpectedTokens:  10,
 			expectSomeKeywords: true,
 		},
 		{
-			name:              "complete query - may not capture tokens",
-			query:             "SELECT * FROM users LIMIT 10 ",
-			position:          29,
-			minExpectedTokens: 0, // Complete queries may return 0
+			name:               "complete query - may not capture tokens",
+			query:              "SELECT * FROM users LIMIT 10 ",
+			position:           29,
+			minExpectedTokens:  0, // Complete queries may return 0
 			expectSomeKeywords: false,
 		},
 	}

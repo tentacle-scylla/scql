@@ -11,13 +11,13 @@ type Schema struct {
 // Keyspace represents a CQL keyspace with its tables, types, and functions.
 type Keyspace struct {
 	Name              string
-	ReplicationClass  string            // SimpleStrategy, NetworkTopologyStrategy, etc.
-	ReplicationFactor map[string]int    // DC name -> replication factor (or "replication_factor" -> n)
+	ReplicationClass  string         // SimpleStrategy, NetworkTopologyStrategy, etc.
+	ReplicationFactor map[string]int // DC name -> replication factor (or "replication_factor" -> n)
 	DurableWrites     bool
 	Tables            map[string]*Table
-	Types             map[string]*UserType   // User-defined types (UDTs)
-	Functions         map[string]*Function   // User-defined functions (UDFs)
-	Aggregates        map[string]*Aggregate  // User-defined aggregates (UDAs)
+	Types             map[string]*UserType  // User-defined types (UDTs)
+	Functions         map[string]*Function  // User-defined functions (UDFs)
+	Aggregates        map[string]*Aggregate // User-defined aggregates (UDAs)
 }
 
 // Table represents a CQL table with its columns and keys.
@@ -25,10 +25,10 @@ type Table struct {
 	Name              string
 	Keyspace          string
 	Columns           map[string]*Column
-	ColumnOrder       []string          // Preserves column definition order
-	PartitionKey      []string          // Column names in partition key order
-	ClusteringKey     []string          // Column names in clustering key order
-	ClusteringOrder   map[string]Order  // Column -> ASC/DESC
+	ColumnOrder       []string         // Preserves column definition order
+	PartitionKey      []string         // Column names in partition key order
+	ClusteringKey     []string         // Column names in clustering key order
+	ClusteringOrder   map[string]Order // Column -> ASC/DESC
 	Indexes           map[string]*Index
 	MaterializedViews map[string]*MaterializedView
 	Comment           string
@@ -70,15 +70,15 @@ type Index struct {
 
 // MaterializedView represents a materialized view.
 type MaterializedView struct {
-	Name           string
-	Keyspace       string
-	BaseTable      string
-	Columns        map[string]*Column
-	ColumnOrder    []string
-	PartitionKey   []string
-	ClusteringKey  []string
+	Name            string
+	Keyspace        string
+	BaseTable       string
+	Columns         map[string]*Column
+	ColumnOrder     []string
+	PartitionKey    []string
+	ClusteringKey   []string
 	ClusteringOrder map[string]Order
-	WhereClause    string // The WHERE clause from the view definition
+	WhereClause     string // The WHERE clause from the view definition
 }
 
 // UserType represents a user-defined type (UDT).
@@ -91,14 +91,14 @@ type UserType struct {
 
 // Function represents a user-defined function (UDF).
 type Function struct {
-	Name           string
-	Keyspace       string
-	Parameters     []FunctionParam
-	ReturnType     string
-	Language       string // java, javascript, lua, etc.
-	Body           string
-	CalledOnNull   bool   // true = CALLED ON NULL INPUT, false = RETURNS NULL ON NULL INPUT
-	Deterministic  bool
+	Name          string
+	Keyspace      string
+	Parameters    []FunctionParam
+	ReturnType    string
+	Language      string // java, javascript, lua, etc.
+	Body          string
+	CalledOnNull  bool // true = CALLED ON NULL INPUT, false = RETURNS NULL ON NULL INPUT
+	Deterministic bool
 }
 
 // FunctionParam represents a function parameter.

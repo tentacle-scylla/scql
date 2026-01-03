@@ -202,8 +202,8 @@ func TestSuggestKeyword(t *testing.T) {
 		{"VALUS", "VALUES"},
 		{"LIMTI", "LIMIT"},
 		{"ORDR", "ORDER"},
-		{"xyz", ""},       // Too far from any keyword
-		{"BANANA", ""},    // Not close to any keyword
+		{"xyz", ""},    // Too far from any keyword
+		{"BANANA", ""}, // Not close to any keyword
 	}
 
 	for _, tt := range tests {

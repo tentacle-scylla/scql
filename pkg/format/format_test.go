@@ -33,7 +33,7 @@ func TestCompactString(t *testing.T) {
 				t.Errorf("Compact output contains newlines: %q", output)
 			}
 
-			if !parse.IsValid(output + ";") && !parse.IsValid(output) {
+			if !parse.IsValid(output+";") && !parse.IsValid(output) {
 				t.Errorf("Compact output is not valid CQL: %q", output)
 			}
 		})

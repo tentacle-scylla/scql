@@ -23,9 +23,9 @@ type Dirs struct {
 	Grammars    string
 	Patched     string
 	Analysis    string
-	Parser     string
-	GenCqlData string
-	Patches    string
+	Parser      string
+	GenCqlData  string
+	Patches     string
 	Tests       string
 	ScyllaTests string
 	ScyllaDB    string // Path to local ScyllaDB source (for completion data extraction)
@@ -42,8 +42,8 @@ func NewDirs(base string) *Dirs {
 		Grammars:    filepath.Join(build, "grammars"),
 		Patched:     filepath.Join(build, "patched"),
 		Analysis:    filepath.Join(build, "analysis"),
-		Parser:     base, // Parser files go in gen/parser root
-		GenCqlData: "",   // Set by NewDirsWithRoot
+		Parser:      base, // Parser files go in gen/parser root
+		GenCqlData:  "",   // Set by NewDirsWithRoot
 		Patches:     filepath.Join(build, "patches"),
 		Tests:       tests,
 		ScyllaTests: filepath.Join(tests, "scylladb"),

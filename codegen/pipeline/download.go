@@ -269,8 +269,8 @@ func cloneScyllaDBSource(dirs *codegen.Dirs) error {
 	// Configure sparse checkout paths
 	sparseFile := filepath.Join(scyllaDir, ".git", "info", "sparse-checkout")
 	sparsePaths := []string{
-		"cql3/",   // Grammar and function definitions
-		"types/",  // Type definitions
+		"cql3/",  // Grammar and function definitions
+		"types/", // Type definitions
 	}
 	if err := os.WriteFile(sparseFile, []byte(strings.Join(sparsePaths, "\n")+"\n"), 0644); err != nil {
 		return fmt.Errorf("failed to write sparse-checkout file: %w", err)

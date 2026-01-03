@@ -110,36 +110,36 @@ func (c *CompletionItem) GetInsertText() string {
 type ContextType string
 
 const (
-	ContextUnknown          ContextType = "unknown"
-	ContextStatementStart   ContextType = "statement_start"   // Beginning of a statement
+	ContextUnknown            ContextType = "unknown"
+	ContextStatementStart     ContextType = "statement_start"      // Beginning of a statement
 	ContextAfterSelect        ContextType = "after_select"         // After SELECT keyword
 	ContextAfterSelectColumns ContextType = "after_select_columns" // After SELECT columns, need FROM
 	ContextAfterFrom          ContextType = "after_from"           // After FROM keyword
 	ContextAfterSelectTable   ContextType = "after_select_table"   // After SELECT ... FROM table
-	ContextAfterWhere       ContextType = "after_where"       // After WHERE keyword
-	ContextAfterAnd         ContextType = "after_and"         // After AND/OR in WHERE
-	ContextAfterOperator    ContextType = "after_operator"    // After =, <, >, etc.
-	ContextAfterInsertInto  ContextType = "after_insert_into" // After INSERT INTO
-	ContextAfterUpdate      ContextType = "after_update"      // After UPDATE keyword
-	ContextAfterSet         ContextType = "after_set"         // After SET in UPDATE
-	ContextAfterDelete      ContextType = "after_delete"      // After DELETE keyword
-	ContextAfterOrderBy     ContextType = "after_order_by"    // After ORDER BY
-	ContextAfterGroupBy     ContextType = "after_group_by"    // After GROUP BY
-	ContextAfterCreate      ContextType = "after_create"      // After CREATE keyword
-	ContextAfterAlter       ContextType = "after_alter"       // After ALTER keyword
-	ContextAfterDrop        ContextType = "after_drop"        // After DROP keyword
-	ContextAfterUse         ContextType = "after_use"         // After USE keyword
-	ContextAfterDot         ContextType = "after_dot"         // After keyspace.
-	ContextInColumnList     ContextType = "in_column_list"    // Inside (col1, col2, ...)
-	ContextAfterValues      ContextType = "after_values"      // After VALUES keyword
-	ContextInTypeSpec       ContextType = "in_type_spec"      // Inside type specification
-	ContextAfterColumn      ContextType = "after_column"      // After column name in WHERE
-	ContextAfterUpdateSet   ContextType = "after_update_set"  // After UPDATE table SET col = value
-	ContextAfterDeleteFrom  ContextType = "after_delete_from" // After DELETE FROM table
-	ContextAfterLimit       ContextType = "after_limit"       // After LIMIT keyword (expects number)
-	ContextAfterLimitValue  ContextType = "after_limit_value" // After LIMIT <number> (only ALLOW FILTERING valid)
-	ContextAfterDescribe    ContextType = "after_describe"    // After DESCRIBE/DESC keyword
-	ContextAfterPrune       ContextType = "after_prune"       // After PRUNE keyword
+	ContextAfterWhere         ContextType = "after_where"          // After WHERE keyword
+	ContextAfterAnd           ContextType = "after_and"            // After AND/OR in WHERE
+	ContextAfterOperator      ContextType = "after_operator"       // After =, <, >, etc.
+	ContextAfterInsertInto    ContextType = "after_insert_into"    // After INSERT INTO
+	ContextAfterUpdate        ContextType = "after_update"         // After UPDATE keyword
+	ContextAfterSet           ContextType = "after_set"            // After SET in UPDATE
+	ContextAfterDelete        ContextType = "after_delete"         // After DELETE keyword
+	ContextAfterOrderBy       ContextType = "after_order_by"       // After ORDER BY
+	ContextAfterGroupBy       ContextType = "after_group_by"       // After GROUP BY
+	ContextAfterCreate        ContextType = "after_create"         // After CREATE keyword
+	ContextAfterAlter         ContextType = "after_alter"          // After ALTER keyword
+	ContextAfterDrop          ContextType = "after_drop"           // After DROP keyword
+	ContextAfterUse           ContextType = "after_use"            // After USE keyword
+	ContextAfterDot           ContextType = "after_dot"            // After keyspace.
+	ContextInColumnList       ContextType = "in_column_list"       // Inside (col1, col2, ...)
+	ContextAfterValues        ContextType = "after_values"         // After VALUES keyword
+	ContextInTypeSpec         ContextType = "in_type_spec"         // Inside type specification
+	ContextAfterColumn        ContextType = "after_column"         // After column name in WHERE
+	ContextAfterUpdateSet     ContextType = "after_update_set"     // After UPDATE table SET col = value
+	ContextAfterDeleteFrom    ContextType = "after_delete_from"    // After DELETE FROM table
+	ContextAfterLimit         ContextType = "after_limit"          // After LIMIT keyword (expects number)
+	ContextAfterLimitValue    ContextType = "after_limit_value"    // After LIMIT <number> (only ALLOW FILTERING valid)
+	ContextAfterDescribe      ContextType = "after_describe"       // After DESCRIBE/DESC keyword
+	ContextAfterPrune         ContextType = "after_prune"          // After PRUNE keyword
 )
 
 // CompletionContext contains all information needed to generate completions.

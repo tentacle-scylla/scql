@@ -45,9 +45,9 @@ type FixtureSchema struct {
 
 // CompleteFixture represents a single test case
 type CompleteFixture struct {
-	Name    string `yaml:"name"`
-	Query   string `yaml:"query"`
-	Position int   `yaml:"position"`
+	Name     string `yaml:"name"`
+	Query    string `yaml:"query"`
+	Position int    `yaml:"position"`
 	Comment  string `yaml:"comment,omitempty"`
 
 	// Schema context
