@@ -1,0 +1,6 @@
+# Lexer rule replacements
+# Format: RULE_NAME=NEW_PATTERN
+# These replace existing rules in the base lexer
+
+# Allow empty hex literals like 0x (for ScyllaDB tests)
+HEXADECIMAL_LITERAL='X' '\'' (HEX_DIGIT HEX_DIGIT)+ '\'' | '0X' HEX_DIGIT*

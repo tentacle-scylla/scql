@@ -1,0 +1,441 @@
+# Manual annotations for generated CQL language elements.
+# These provide human-readable descriptions and completion priorities.
+
+keywords:
+  # Statement starters (priority 1-10)
+  SELECT:
+    detail: "Query data from a table"
+    priority: 1
+  INSERT:
+    detail: "Insert data into a table"
+    priority: 2
+  UPDATE:
+    detail: "Update data in a table"
+    priority: 3
+  DELETE:
+    detail: "Delete data from a table"
+    priority: 4
+  CREATE:
+    detail: "Create schema objects"
+    priority: 10
+  ALTER:
+    detail: "Modify schema objects"
+    priority: 11
+  DROP:
+    detail: "Remove schema objects"
+    priority: 12
+  TRUNCATE:
+    detail: "Remove all data from a table"
+    priority: 13
+  USE:
+    detail: "Set current keyspace"
+    priority: 20
+  DESCRIBE:
+    detail: "Show schema information"
+    priority: 21
+  DESC:
+    detail: "Show schema information (short)"
+    priority: 22
+  BEGIN:
+    detail: "Start a batch statement"
+    priority: 30
+  GRANT:
+    detail: "Grant permissions"
+    priority: 40
+  REVOKE:
+    detail: "Revoke permissions"
+    priority: 41
+  LIST:
+    detail: "List roles or permissions"
+    priority: 42
+  PRUNE:
+    detail: "Remove ghost rows from materialized view"
+    priority: 43
+
+  # Clause keywords
+  FROM:
+    detail: "Specify table"
+    priority: 1
+  WHERE:
+    detail: "Filter conditions"
+    priority: 1
+  AND:
+    detail: "Additional condition"
+    priority: 2
+  OR:
+    detail: "Alternative condition"
+    priority: 3
+  ORDER BY:
+    detail: "Sort results"
+    insertText: "ORDER BY "
+    priority: 2
+  GROUP BY:
+    detail: "Group results"
+    insertText: "GROUP BY "
+    priority: 3
+  LIMIT:
+    detail: "Limit number of rows"
+    priority: 4
+  ALLOW FILTERING:
+    detail: "Allow inefficient queries"
+    insertText: "ALLOW FILTERING"
+    priority: 5
+  PER PARTITION LIMIT:
+    detail: "Limit rows per partition"
+    insertText: "PER PARTITION LIMIT "
+    priority: 6
+  BYPASS CACHE:
+    detail: "Skip cache for this query"
+    insertText: "BYPASS CACHE"
+    priority: 7
+  USING TIMEOUT:
+    detail: "Set query timeout"
+    insertText: "USING TIMEOUT "
+    priority: 8
+  SET:
+    detail: "Set column values"
+    priority: 1
+  VALUES:
+    detail: "Specify row values"
+    priority: 1
+  INTO:
+    detail: "Target table"
+    priority: 1
+  IF:
+    detail: "Conditional operation"
+    priority: 10
+  USING:
+    detail: "Set TTL or timestamp"
+    priority: 10
+  TTL:
+    detail: "Time to live"
+    priority: 11
+  TIMESTAMP:
+    detail: "Write timestamp"
+    priority: 12
+  WITH:
+    detail: "Table/keyspace options"
+    priority: 10
+  PRIMARY KEY:
+    detail: "Define primary key"
+    insertText: "PRIMARY KEY"
+    priority: 1
+
+  # After CREATE keywords
+  TABLE:
+    detail: "Create/modify a table"
+    priority: 1
+  KEYSPACE:
+    detail: "Create/modify a keyspace"
+    priority: 2
+  INDEX:
+    detail: "Create/drop an index"
+    priority: 3
+  MATERIALIZED VIEW:
+    detail: "Create/drop a materialized view"
+    insertText: "MATERIALIZED VIEW "
+    priority: 4
+  TYPE:
+    detail: "Create/modify a user-defined type"
+    priority: 5
+  FUNCTION:
+    detail: "Create/drop a function"
+    priority: 6
+  AGGREGATE:
+    detail: "Create/drop an aggregate"
+    priority: 7
+  ROLE:
+    detail: "Create/modify/drop a role"
+    priority: 10
+  USER:
+    detail: "Create/modify/drop a user"
+    priority: 11
+  TRIGGER:
+    detail: "Create/drop a trigger"
+    priority: 12
+
+functions:
+  # UUID and time functions
+  uuid:
+    detail: "Generate random UUID"
+    documentation: "Returns a random Type 4 UUID"
+    priority: 1
+  now:
+    detail: "Current timeuuid"
+    documentation: "Returns a new unique timeuuid (Type 1 UUID)"
+    priority: 2
+  currentTimestamp:
+    detail: "Current timestamp"
+    documentation: "Returns the current timestamp"
+    priority: 3
+  currentDate:
+    detail: "Current date"
+    documentation: "Returns the current date"
+    priority: 4
+  currentTime:
+    detail: "Current time"
+    documentation: "Returns the current time"
+    priority: 5
+  currentTimeUUID:
+    detail: "Current timeuuid"
+    documentation: "Returns a timeuuid for the current time"
+    priority: 6
+
+  # Time conversion functions
+  toDate:
+    detail: "Convert to date"
+    documentation: "Converts a timeuuid or timestamp to a date"
+    priority: 20
+  toTimestamp:
+    detail: "Convert to timestamp"
+    documentation: "Converts a timeuuid or date to a timestamp"
+    priority: 21
+  toUnixTimestamp:
+    detail: "Convert to Unix timestamp"
+    documentation: "Converts to Unix timestamp in milliseconds"
+    priority: 22
+  dateOf:
+    detail: "Extract date from timeuuid"
+    documentation: "Extracts the timestamp from a timeuuid as date"
+    priority: 23
+  unixTimestampOf:
+    detail: "Extract Unix timestamp"
+    documentation: "Extracts Unix timestamp from timeuuid"
+    priority: 24
+  minTimeuuid:
+    detail: "Min timeuuid for timestamp"
+    documentation: "Returns smallest timeuuid for a timestamp"
+    priority: 25
+  maxTimeuuid:
+    detail: "Max timeuuid for timestamp"
+    documentation: "Returns largest timeuuid for a timestamp"
+    priority: 26
+
+  # Token function
+  token:
+    detail: "Partition token"
+    documentation: "Returns the token value for a partition key"
+    priority: 10
+
+  # Aggregate functions
+  count:
+    detail: "Count rows"
+    documentation: "Returns the number of rows"
+    priority: 40
+  sum:
+    detail: "Sum values"
+    documentation: "Returns the sum of values"
+    priority: 41
+  avg:
+    detail: "Average value"
+    documentation: "Returns the average of values"
+    priority: 42
+  min:
+    detail: "Minimum value"
+    documentation: "Returns the minimum value"
+    priority: 43
+  max:
+    detail: "Maximum value"
+    documentation: "Returns the maximum value"
+    priority: 44
+
+  # Cell metadata functions
+  writetime:
+    detail: "Write timestamp"
+    documentation: "Returns the write timestamp of a column"
+    priority: 50
+  ttl:
+    detail: "Time to live"
+    documentation: "Returns the remaining TTL of a column"
+    priority: 51
+
+  # JSON functions
+  toJson:
+    detail: "Convert to JSON"
+    documentation: "Converts a value to JSON string"
+    priority: 60
+  fromJson:
+    detail: "Parse JSON"
+    documentation: "Parses a JSON string to CQL value"
+    priority: 61
+
+  # Type casting
+  cast:
+    detail: "Cast type"
+    documentation: "Casts a value to another type"
+    priority: 70
+
+types:
+  # Numeric types
+  int:
+    detail: "32-bit signed integer"
+    priority: 1
+  bigint:
+    detail: "64-bit signed integer"
+    priority: 2
+  smallint:
+    detail: "16-bit signed integer"
+    priority: 3
+  tinyint:
+    detail: "8-bit signed integer"
+    priority: 4
+  varint:
+    detail: "Arbitrary-precision integer"
+    priority: 5
+  float:
+    detail: "32-bit floating point"
+    priority: 6
+  double:
+    detail: "64-bit floating point"
+    priority: 7
+  decimal:
+    detail: "Arbitrary-precision decimal"
+    priority: 8
+  counter:
+    detail: "Distributed counter"
+    priority: 9
+
+  # String types
+  text:
+    detail: "UTF-8 string"
+    priority: 10
+  varchar:
+    detail: "UTF-8 string (alias for text)"
+    priority: 11
+  ascii:
+    detail: "ASCII string"
+    priority: 12
+
+  # UUID types
+  uuid:
+    detail: "Type 4 UUID"
+    priority: 20
+  timeuuid:
+    detail: "Type 1 UUID (time-based)"
+    priority: 21
+
+  # Time types
+  timestamp:
+    detail: "Date and time"
+    priority: 30
+  date:
+    detail: "Date without time"
+    priority: 31
+  time:
+    detail: "Time without date"
+    priority: 32
+  duration:
+    detail: "Time duration"
+    priority: 33
+
+  # Other types
+  boolean:
+    detail: "True or false"
+    priority: 40
+  blob:
+    detail: "Binary large object"
+    priority: 41
+  inet:
+    detail: "IP address"
+    priority: 42
+
+  # Collection types
+  list:
+    detail: "Ordered collection"
+    documentation: "list<type>"
+    insertText: "list<>"
+    priority: 50
+  set:
+    detail: "Unique collection"
+    documentation: "set<type>"
+    insertText: "set<>"
+    priority: 51
+  map:
+    detail: "Key-value pairs"
+    documentation: "map<key_type, value_type>"
+    insertText: "map<,>"
+    priority: 52
+  tuple:
+    detail: "Fixed-length tuple"
+    documentation: "tuple<type1, type2, ...>"
+    insertText: "tuple<>"
+    priority: 53
+  frozen:
+    detail: "Immutable collection"
+    documentation: "frozen<collection_type>"
+    insertText: "frozen<>"
+    priority: 54
+  vector:
+    detail: "Fixed-dimension vector"
+    documentation: "vector<type, dimension>"
+    insertText: "vector<>"
+    priority: 55
+
+snippets:
+  - label: "SELECT * FROM"
+    detail: "Select all columns"
+    insertText: "SELECT * FROM "
+    priority: 1
+  - label: "SELECT ... WHERE"
+    detail: "Select with filter"
+    insertText: "SELECT  FROM  WHERE "
+    priority: 2
+  - label: "INSERT INTO ... VALUES"
+    detail: "Insert row"
+    insertText: "INSERT INTO  () VALUES ()"
+    priority: 3
+  - label: "UPDATE ... SET ... WHERE"
+    detail: "Update rows"
+    insertText: "UPDATE  SET  WHERE "
+    priority: 4
+  - label: "DELETE FROM ... WHERE"
+    detail: "Delete rows"
+    insertText: "DELETE FROM  WHERE "
+    priority: 5
+  - label: "CREATE TABLE"
+    detail: "Create new table"
+    insertText: "CREATE TABLE  (\n    PRIMARY KEY ()\n)"
+    priority: 10
+  - label: "CREATE KEYSPACE"
+    detail: "Create new keyspace"
+    insertText: "CREATE KEYSPACE  WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1}"
+    priority: 11
+  - label: "BEGIN BATCH ... APPLY BATCH"
+    detail: "Batch statement"
+    insertText: "BEGIN BATCH\n\nAPPLY BATCH"
+    priority: 20
+
+operators:
+  - label: "="
+    detail: "Equals"
+    priority: 1
+  - label: "<"
+    detail: "Less than"
+    priority: 2
+  - label: ">"
+    detail: "Greater than"
+    priority: 3
+  - label: "<="
+    detail: "Less than or equal"
+    priority: 4
+  - label: ">="
+    detail: "Greater than or equal"
+    priority: 5
+  - label: "IN"
+    detail: "In list of values"
+    insertText: "IN ()"
+    priority: 6
+  - label: "NOT IN"
+    detail: "Not in list of values"
+    insertText: "NOT IN ()"
+    priority: 7
+  - label: "CONTAINS"
+    detail: "Collection contains value"
+    priority: 8
+  - label: "CONTAINS KEY"
+    detail: "Map contains key"
+    insertText: "CONTAINS KEY "
+    priority: 9
+  - label: "LIKE"
+    detail: "Pattern matching (% and _ wildcards)"
+    priority: 10

@@ -1,0 +1,80 @@
+# ScyllaDB-specific keywords to add to the lexer
+# These are keywords used in ScyllaDB syntax extensions that don't conflict with identifiers
+# Format: KEYWORD_NAME:LITERAL
+
+# For BYPASS CACHE
+K_BYPASS:BYPASS
+K_CACHE:CACHE
+
+# For USING TIMEOUT
+K_TIMEOUT:TIMEOUT
+
+# For PRUNE MATERIALIZED VIEW
+K_PRUNE:PRUNE
+
+# For GROUP BY (not in base grammar)
+K_GROUP:GROUP
+
+# For ScyllaDB data types
+K_DURATION:DURATION
+K_VECTOR:VECTOR
+
+# For LIKE operator
+K_LIKE:LIKE
+
+# For CAST function
+K_CAST:CAST
+
+# For reserved words used as column names
+K_VALUE:VALUE
+
+# For tablets option in keyspace
+K_TABLETS:TABLETS
+
+# For JSON DEFAULT UNSET
+K_DEFAULT:DEFAULT
+K_UNSET:UNSET
+
+# For SCYLLA_CLUSTERING_BOUND pagination
+K_SCYLLA_CLUSTERING_BOUND:SCYLLA_CLUSTERING_BOUND
+
+# For DESCRIBE statements
+K_CLUSTER:CLUSTER
+K_ONLY:ONLY
+K_INTERNALS:INTERNALS
+K_PASSWORDS:PASSWORDS
+K_TABLES:TABLES
+K_TYPES:TYPES
+K_AGGREGATES:AGGREGATES
+
+# For Service Level statements
+K_SERVICE:SERVICE
+K_LEVELS:LEVELS
+K_ATTACH:ATTACH
+K_DETACH:DETACH
+K_ATTACHED:ATTACHED
+K_EFFECTIVE:EFFECTIVE
+
+# For Vector Search / ANN (Storage Attached Index)
+# K_CUSTOM already exists in base lexer
+K_ANN:ANN
+
+# For advanced aggregates
+K_REDUCEFUNC:REDUCEFUNC
+
+# For auth extensions
+K_NOLOGIN:NOLOGIN
+K_USERS:USERS
+K_HASHED:HASHED
+
+# For empty collection literal
+K_EMPTY:EMPTY
+
+# For PRUNE MATERIALIZED VIEW
+K_CONCURRENCY:CONCURRENCY
+
+# For vector search permission
+K_VECTOR_SEARCH_INDEXING:VECTOR_SEARCH_INDEXING
+
+# Prepared statement placeholders are added via lexer rules, not keywords
+# See lexer_rules section below

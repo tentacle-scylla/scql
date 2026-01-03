@@ -1,0 +1,989 @@
+# Completion package test fixtures
+# Tests context detection and completion generation
+
+# =============================================================================
+# Schema Definitions
+# =============================================================================
+schemas:
+  simple_users:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [user_id]
+            clusteringKey: [created_at]
+            columns:
+              - { name: user_id, type: uuid }
+              - { name: created_at, type: timestamp }
+              - { name: name, type: text }
+              - { name: email, type: text }
+              - { name: status, type: text }
+          - name: orders
+            partitionKey: [user_id]
+            clusteringKey: [order_id]
+            columns:
+              - { name: user_id, type: uuid }
+              - { name: order_id, type: timeuuid }
+              - { name: total, type: decimal }
+              - { name: items, type: "list<text>" }
+
+  multi_keyspace:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [id]
+            columns:
+              - { name: id, type: uuid }
+              - { name: name, type: text }
+              - { name: email, type: text }
+            materializedViews:
+              - name: users_by_email
+                baseTable: users
+                partitionKey: [email]
+                clusteringKey: [id]
+                columns:
+                  - { name: email, type: text }
+                  - { name: id, type: uuid }
+                  - { name: name, type: text }
+      - name: analytics
+        tables:
+          - name: events
+            partitionKey: [event_id]
+            columns:
+              - { name: event_id, type: uuid }
+              - { name: type, type: text }
+
+# =============================================================================
+# Test Cases
+# =============================================================================
+tests:
+  # ---------------------------------------------------------------------------
+  # Context Detection Tests
+  # ---------------------------------------------------------------------------
+
+  - name: context-empty-query
+    query: ""
+    position: 0
+    expectContext: statement_start
+    expectPrefix: ""
+
+  - name: context-partial-select
+    query: "SEL"
+    position: 3
+    expectContext: statement_start
+    expectPrefix: "SEL"
+
+  - name: context-after-select
+    query: "SELECT "
+    position: 7
+    expectContext: after_select
+    expectPrefix: ""
+
+  - name: context-after-select-partial-column
+    query: "SELECT na"
+    position: 9
+    expectContext: after_select
+    expectPrefix: "na"
+
+  - name: context-after-from
+    query: "SELECT * FROM "
+    position: 14
+    expectContext: after_from
+    expectPrefix: ""
+
+  - name: context-after-from-partial
+    query: "SELECT * FROM us"
+    position: 16
+    expectContext: after_from
+    expectPrefix: "us"
+
+  - name: context-after-where
+    query: "SELECT * FROM users WHERE "
+    position: 26
+    expectContext: after_where
+    expectPrefix: ""
+
+  - name: context-after-and
+    query: "SELECT * FROM users WHERE id = 1 AND "
+    position: 37
+    expectContext: after_and
+    expectPrefix: ""
+
+  - name: context-after-operator
+    query: "SELECT * FROM users WHERE id = "
+    position: 31
+    expectContext: after_operator
+    expectPrefix: ""
+
+  - name: context-after-update
+    query: "UPDATE "
+    position: 7
+    expectContext: after_update
+    expectPrefix: ""
+
+  - name: context-after-set
+    query: "UPDATE users SET "
+    position: 17
+    expectContext: after_set
+    expectPrefix: ""
+
+  - name: context-after-insert-into
+    query: "INSERT INTO "
+    position: 12
+    expectContext: after_insert_into
+    expectPrefix: ""
+
+  - name: context-after-delete
+    query: "DELETE "
+    position: 7
+    expectContext: after_delete
+    expectPrefix: ""
+
+  - name: context-after-create
+    query: "CREATE "
+    position: 7
+    expectContext: after_create
+    expectPrefix: ""
+
+  - name: context-after-alter
+    query: "ALTER "
+    position: 6
+    expectContext: after_alter
+    expectPrefix: ""
+
+  - name: context-after-drop
+    query: "DROP "
+    position: 5
+    expectContext: after_drop
+    expectPrefix: ""
+
+  - name: context-after-use
+    query: "USE "
+    position: 4
+    expectContext: after_use
+    expectPrefix: ""
+
+  - name: context-after-order-by
+    query: "SELECT * FROM users ORDER BY "
+    position: 29
+    expectContext: after_order_by
+    expectPrefix: ""
+
+  - name: context-after-select-table
+    query: "SELECT * FROM users "
+    position: 20
+    expectContext: after_select_table
+    expectPrefix: ""
+    comment: "After table name in SELECT, should suggest WHERE, ORDER BY, LIMIT, etc."
+
+  - name: context-after-select-table-keyspace-qualified
+    query: "SELECT * FROM myapp.users "
+    position: 26
+    expectContext: after_select_table
+    expectPrefix: ""
+    comment: "After keyspace.table in SELECT, should suggest WHERE, ORDER BY, LIMIT, etc."
+
+  - name: context-after-dot
+    query: "SELECT * FROM myapp."
+    position: 20
+    expectContext: after_dot
+    expectPrefix: ""
+
+  # ---------------------------------------------------------------------------
+  # Completion Generation Tests (without schema)
+  # ---------------------------------------------------------------------------
+
+  - name: complete-statement-start
+    query: ""
+    position: 0
+    expectCompletionKinds: [keyword, snippet]
+    expectCompletionLabels: [SELECT, INSERT, UPDATE, DELETE, CREATE]
+
+  - name: complete-partial-select
+    query: "SEL"
+    position: 3
+    expectCompletionLabels: [SELECT]
+
+  - name: complete-after-select-star
+    query: "SELECT "
+    position: 7
+    expectCompletionLabels: ["*"]
+    expectCompletionKinds: [keyword, function]
+
+  - name: complete-after-create
+    query: "CREATE "
+    position: 7
+    expectCompletionLabels: [TABLE, KEYSPACE, INDEX, TYPE]
+
+  - name: complete-after-drop
+    query: "DROP "
+    position: 5
+    expectCompletionLabels: [TABLE, KEYSPACE, INDEX, TYPE]
+
+  # ---------------------------------------------------------------------------
+  # Schema-Aware Completion Tests
+  # ---------------------------------------------------------------------------
+
+  - name: complete-tables-from-schema
+    query: "SELECT * FROM "
+    position: 14
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectCompletionLabels: [users, orders]
+    expectCompletionKinds: [table]
+
+  - name: complete-columns-after-select
+    query: "SELECT  FROM myapp.users"
+    position: 7
+    schemaRef: simple_users
+    expectCompletionLabels: [user_id, created_at, name, email, status]
+    expectCompletionKinds: [column]
+    comment: "Cursor is between SELECT and FROM, suggesting columns for users table"
+
+  - name: complete-columns-in-where
+    query: "SELECT * FROM myapp.users WHERE "
+    position: 32
+    schemaRef: simple_users
+    expectCompletionLabels: [user_id, created_at, name, email, status]
+
+  - name: complete-columns-in-order-by
+    query: "SELECT * FROM myapp.users ORDER BY "
+    position: 35
+    schemaRef: simple_users
+    # ASC/DESC are only valid AFTER a column name, not directly after ORDER BY
+    expectCompletionLabels: [user_id, created_at, name, email, status]
+
+  - name: complete-keyspaces-after-use
+    query: "USE "
+    position: 4
+    schemaRef: multi_keyspace
+    expectCompletionLabels: [myapp, analytics]
+    expectCompletionKinds: [keyspace]
+
+  - name: complete-tables-after-dot
+    query: "SELECT * FROM myapp."
+    position: 20
+    schemaRef: multi_keyspace
+    expectCompletionLabels: [users]
+
+  # Cross-keyspace table search tests
+  - name: complete-tables-cross-keyspace-all
+    query: "SELECT * FROM "
+    position: 14
+    schemaRef: multi_keyspace
+    defaultKeyspace: myapp
+    # Should show tables from all keyspaces:
+    # - users (from default keyspace myapp, shown without prefix)
+    # - analytics.events (from other keyspace, shown with prefix)
+    expectCompletionLabels: [users, "analytics.events"]
+    comment: "Shows tables from all keyspaces, default keyspace tables without prefix"
+
+  - name: complete-tables-cross-keyspace-prefix
+    query: "SELECT * FROM ev"
+    position: 16
+    schemaRef: multi_keyspace
+    defaultKeyspace: myapp
+    # Typing "ev" should match "events" table in analytics keyspace
+    expectCompletionLabels: ["analytics.events"]
+    comment: "Prefix search works across all keyspaces"
+
+  - name: complete-tables-cross-keyspace-no-default
+    query: "SELECT * FROM "
+    position: 14
+    schemaRef: multi_keyspace
+    # No default keyspace - all tables shown with keyspace prefix
+    expectCompletionLabels: ["myapp.users", "analytics.events"]
+    comment: "Without default keyspace, all tables shown with keyspace.table format"
+
+  # Materialized view completion tests
+  - name: complete-tables-includes-mv
+    query: "SELECT * FROM "
+    position: 14
+    schemaRef: multi_keyspace
+    defaultKeyspace: myapp
+    # Should show both tables and MVs - users table and users_by_email MV
+    expectCompletionLabels: [users, users_by_email]
+    expectCompletionKinds: [table, view]
+    comment: "MVs are shown alongside tables since they are queryable"
+
+  - name: complete-tables-mv-with-keyspace-prefix
+    query: "SELECT * FROM myapp."
+    position: 20
+    schemaRef: multi_keyspace
+    # After explicit keyspace, show both tables and MVs from that keyspace
+    expectCompletionLabels: [users, users_by_email]
+    comment: "After keyspace., show tables and MVs from that keyspace"
+
+  - name: complete-filter-by-prefix
+    query: "SELECT * FROM myapp.users WHERE na"
+    position: 34
+    schemaRef: simple_users
+    expectCompletionLabels: [name]
+    expectMissingLabels: [user_id, email, status]
+
+  - name: complete-values-placeholders
+    query: "SELECT * FROM users WHERE id = "
+    position: 31
+    expectCompletionLabels: ["?", "null", "true", "false"]
+
+  # ---------------------------------------------------------------------------
+  # Column Priority Tests (partition key first)
+  # ---------------------------------------------------------------------------
+
+  - name: complete-columns-pk-first
+    query: "SELECT  FROM myapp.users"
+    position: 7
+    schemaRef: simple_users
+    expectCompletionLabels: ["*", user_id, created_at, name, email, status]
+    comment: "All columns and star should be available"
+
+  # ---------------------------------------------------------------------------
+  # Context-Aware Keyword Tests (only valid keywords for current context)
+  # ---------------------------------------------------------------------------
+
+  - name: complete-after-select-table-valid-keywords
+    query: "SELECT * FROM users "
+    position: 20
+    expectCompletionLabels: [WHERE, "ORDER BY", "GROUP BY", LIMIT, "ALLOW FILTERING"]
+    expectMissingLabels: [FROM, INTO, VALUES, SET, DELETE, INSERT, UPDATE, SELECT]
+    comment: "After SELECT ... FROM table, only valid clauses should appear"
+
+  - name: complete-after-select-table-keyspace-qualified
+    query: "SELECT * FROM myapp.users "
+    position: 26
+    schemaRef: simple_users
+    expectCompletionLabels: [WHERE, "ORDER BY", "GROUP BY", LIMIT, "ALLOW FILTERING"]
+    expectMissingLabels: [FROM, INTO, VALUES, SET]
+    comment: "After SELECT ... FROM keyspace.table, only valid clauses should appear"
+
+  - name: context-after-update-set
+    query: "UPDATE users SET name = 'test' "
+    position: 31
+    expectContext: after_update_set
+    expectPrefix: ""
+    comment: "After UPDATE table SET col = value, ready for WHERE/USING/IF"
+
+  - name: complete-after-update-set
+    query: "UPDATE users SET name = 'test' "
+    position: 31
+    # In CQL: USING comes BEFORE SET, IF comes AFTER WHERE
+    # So after SET col = val, only WHERE (and more assignments) are valid
+    expectCompletionLabels: [WHERE]
+    expectMissingLabels: [FROM, SELECT, INSERT, ORDER BY, GROUP BY, "USING TTL", "USING TIMESTAMP", IF]
+    comment: "After UPDATE ... SET col = value, only WHERE is valid (USING comes before SET, IF after WHERE)"
+
+  - name: context-after-delete-from
+    query: "DELETE FROM users "
+    position: 18
+    expectContext: after_delete_from
+    expectPrefix: ""
+    comment: "After DELETE FROM table, ready for WHERE/USING/IF"
+
+  - name: complete-after-delete-from
+    query: "DELETE FROM users "
+    position: 18
+    # IF comes after WHERE in CQL, not directly after FROM table
+    expectCompletionLabels: [WHERE, "USING TIMESTAMP"]
+    expectMissingLabels: [FROM, SELECT, INSERT, SET, ORDER BY, GROUP BY, IF]
+    comment: "After DELETE FROM table, WHERE and USING TIMESTAMP are valid (IF comes after WHERE)"
+
+  # ---------------------------------------------------------------------------
+  # SELECT Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  # After SELECT * - still in column list, can add more columns or FROM
+  - name: context-select-star-need-from
+    query: "SELECT * "
+    position: 9
+    expectContext: after_select
+    expectPrefix: ""
+
+  - name: complete-select-star-need-from
+    query: "SELECT * "
+    position: 9
+    expectCompletionLabels: [FROM]
+    expectMissingLabels: [WHERE, ORDER BY, LIMIT, SELECT, INSERT]
+
+  # After SELECT col1, col2 - still in column list
+  - name: context-select-columns-need-from
+    query: "SELECT id, name "
+    position: 16
+    expectContext: after_select
+    expectPrefix: ""
+
+  - name: complete-select-columns-need-from
+    query: "SELECT id, name "
+    position: 16
+    expectCompletionLabels: [FROM]
+    expectMissingLabels: [WHERE, ORDER BY, LIMIT]
+
+  # After SELECT count(*) - still in column list
+  - name: context-select-function-need-from
+    query: "SELECT count(*) "
+    position: 16
+    expectContext: after_select
+    expectPrefix: ""
+
+  - name: complete-select-function-need-from
+    query: "SELECT count(*) "
+    position: 16
+    expectCompletionLabels: [FROM]
+    expectMissingLabels: [WHERE, ORDER BY]
+
+  # In middle of typing FROM
+  - name: context-select-partial-from
+    query: "SELECT * FR"
+    position: 11
+    expectContext: after_select
+    expectPrefix: "FR"
+
+  # After FROM table WHERE col = value (suggest AND, ORDER BY, etc)
+  - name: context-select-where-complete-condition
+    query: "SELECT * FROM users WHERE id = 123 "
+    position: 35
+    expectContext: after_and
+    expectPrefix: ""
+
+  - name: complete-select-where-complete-condition
+    query: "SELECT * FROM users WHERE id = 123 "
+    position: 35
+    expectCompletionLabels: [AND, "ORDER BY", "GROUP BY", LIMIT, "ALLOW FILTERING"]
+    expectMissingLabels: [FROM, INTO, VALUES, SET, WHERE]
+
+  # After WHERE with IN operator
+  - name: context-select-where-in
+    query: "SELECT * FROM users WHERE id IN "
+    position: 32
+    expectContext: after_operator
+    expectPrefix: ""
+
+  # After ORDER BY col (still in order_by context for ASC/DESC)
+  - name: context-select-order-by-col
+    query: "SELECT * FROM users ORDER BY id "
+    position: 32
+    expectContext: after_select_table
+    expectPrefix: ""
+    comment: "Falls through to after_select_table since ORDER BY id is complete"
+
+  # After GROUP BY col
+  - name: context-select-group-by-col
+    query: "SELECT * FROM users GROUP BY status "
+    position: 36
+    expectContext: after_select_table
+    expectPrefix: ""
+    comment: "Falls through to after_select_table since GROUP BY status is complete"
+
+  # After LIMIT
+  - name: context-select-after-limit
+    query: "SELECT * FROM users LIMIT "
+    position: 26
+    expectContext: after_limit
+    expectPrefix: ""
+    comment: "After LIMIT, expecting a number - no completions"
+
+  # After LIMIT with number
+  - name: context-select-after-limit-value
+    query: "SELECT * FROM users LIMIT 10 "
+    position: 29
+    expectContext: after_limit_value
+    expectPrefix: ""
+    comment: "After LIMIT <number>, only ALLOW FILTERING is valid"
+
+  - name: complete-after-limit-value
+    query: "SELECT * FROM users LIMIT 10 "
+    position: 29
+    expectCompletionLabels: ["ALLOW FILTERING"]
+    expectMissingLabels: [WHERE, "ORDER BY", "GROUP BY", LIMIT]
+    comment: "Only ALLOW FILTERING should be suggested after LIMIT <number>"
+
+  # ---------------------------------------------------------------------------
+  # INSERT Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  # After INSERT (suggest INTO)
+  - name: context-after-insert
+    query: "INSERT "
+    position: 7
+    expectContext: unknown
+    expectPrefix: ""
+    comment: "INSERT alone doesn't trigger a specific context yet"
+
+  # After INSERT INTO table (suggest column list or VALUES)
+  - name: context-insert-into-table
+    query: "INSERT INTO users "
+    position: 18
+    expectContext: unknown
+    expectPrefix: ""
+    comment: "After table in INSERT, could suggest ( for columns or VALUES"
+
+  # Inside INSERT column list
+  - name: context-insert-column-list
+    query: "INSERT INTO users (id, "
+    position: 23
+    expectContext: in_column_list
+    expectPrefix: ""
+
+  - name: complete-insert-column-list
+    query: "INSERT INTO myapp.users (user_id, "
+    position: 34
+    schemaRef: simple_users
+    expectCompletionLabels: [created_at, name, email, status]
+    expectMissingLabels: [WHERE, FROM, SELECT]
+
+  # After VALUES
+  - name: context-insert-after-values
+    query: "INSERT INTO users (id) VALUES "
+    position: 30
+    expectContext: after_values
+    expectPrefix: ""
+
+  - name: complete-insert-after-values
+    query: "INSERT INTO users (id) VALUES "
+    position: 30
+    expectCompletionLabels: ["?", "uuid()", "now()"]
+    expectMissingLabels: [WHERE, FROM, SELECT, ORDER BY]
+
+  # Inside VALUES list
+  - name: context-insert-values-list
+    query: "INSERT INTO users (id, name) VALUES (?, "
+    position: 40
+    expectContext: unknown
+    expectPrefix: ""
+    comment: "Inside VALUES parens - could suggest more values"
+
+  # After INSERT ... VALUES () (suggest USING or IF)
+  - name: context-insert-complete
+    query: "INSERT INTO users (id) VALUES (?) "
+    position: 34
+    expectContext: unknown
+    expectPrefix: ""
+
+  # ---------------------------------------------------------------------------
+  # UPDATE Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  # After UPDATE table (suggest SET)
+  - name: context-update-table
+    query: "UPDATE users "
+    position: 13
+    expectContext: unknown
+    expectPrefix: ""
+
+  # After SET col (suggest =)
+  - name: context-update-set-col
+    query: "UPDATE users SET name "
+    position: 22
+    expectContext: unknown
+    expectPrefix: ""
+    comment: "After SET col, need = operator"
+
+  # After SET col = (suggest value)
+  - name: context-update-set-col-eq
+    query: "UPDATE users SET name = "
+    position: 24
+    expectContext: after_operator
+    expectPrefix: ""
+    comment: "After = operator, suggest values"
+
+  # After SET col = value, (suggest more columns)
+  - name: context-update-set-multiple
+    query: "UPDATE users SET name = 'test', "
+    position: 32
+    expectContext: after_update_set
+    expectPrefix: ""
+
+  # After complete SET clause (suggest WHERE)
+  - name: complete-update-set-complete
+    query: "UPDATE users SET name = 'test' "
+    position: 31
+    # In CQL: USING comes BEFORE SET, IF comes AFTER WHERE
+    expectCompletionLabels: [WHERE]
+    expectMissingLabels: [FROM, SELECT, ORDER BY, GROUP BY, LIMIT, "USING TTL", "USING TIMESTAMP", IF]
+
+  # After UPDATE ... SET ... WHERE (suggest columns)
+  - name: context-update-where
+    query: "UPDATE users SET name = 'test' WHERE "
+    position: 37
+    expectContext: after_where
+    expectPrefix: ""
+
+  # After UPDATE ... WHERE col = value (suggest AND, IF)
+  - name: context-update-where-complete
+    query: "UPDATE users SET name = 'test' WHERE id = 1 "
+    position: 44
+    expectContext: after_update_set
+    expectPrefix: ""
+    comment: "Falls through to after_update_set since UPDATE has SET"
+
+  # ---------------------------------------------------------------------------
+  # DELETE Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  # After DELETE (suggest FROM or column list)
+  - name: context-delete-start
+    query: "DELETE "
+    position: 7
+    expectContext: after_delete
+    expectPrefix: ""
+
+  - name: complete-delete-start
+    query: "DELETE "
+    position: 7
+    expectCompletionLabels: [FROM]
+
+  # After DELETE FROM (suggest table)
+  - name: context-delete-from
+    query: "DELETE FROM "
+    position: 12
+    expectContext: after_from
+    expectPrefix: ""
+
+  # After DELETE FROM table (suggest WHERE)
+  - name: complete-delete-from-table
+    query: "DELETE FROM users "
+    position: 18
+    # IF comes after WHERE, not directly after FROM table
+    expectCompletionLabels: [WHERE, "USING TIMESTAMP"]
+    expectMissingLabels: [FROM, SELECT, ORDER BY, SET, IF]
+
+  # After DELETE FROM table WHERE (suggest columns)
+  - name: context-delete-where
+    query: "DELETE FROM users WHERE "
+    position: 24
+    expectContext: after_where
+    expectPrefix: ""
+
+  # After DELETE cols FROM table (suggest WHERE)
+  - name: context-delete-cols-from-table
+    query: "DELETE name FROM users "
+    position: 23
+    expectContext: after_delete_from
+    expectPrefix: ""
+
+  # ---------------------------------------------------------------------------
+  # CREATE Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  # After CREATE TABLE
+  - name: context-create-table
+    query: "CREATE TABLE "
+    position: 13
+    expectContext: unknown
+    expectPrefix: ""
+
+  # After CREATE KEYSPACE
+  - name: context-create-keyspace
+    query: "CREATE KEYSPACE "
+    position: 16
+    expectContext: unknown
+    expectPrefix: ""
+
+  # After CREATE INDEX
+  - name: context-create-index
+    query: "CREATE INDEX "
+    position: 13
+    expectContext: unknown
+    expectPrefix: ""
+
+  # After CREATE MATERIALIZED VIEW
+  - name: context-create-mv
+    query: "CREATE MATERIALIZED VIEW "
+    position: 25
+    expectContext: unknown
+    expectPrefix: ""
+
+  # ---------------------------------------------------------------------------
+  # ALTER Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  - name: complete-alter
+    query: "ALTER "
+    position: 6
+    expectCompletionLabels: [TABLE, KEYSPACE, TYPE, ROLE, USER]
+    expectMissingLabels: [SELECT, INSERT, FROM, WHERE]
+
+  # ---------------------------------------------------------------------------
+  # DROP Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  - name: complete-drop
+    query: "DROP "
+    position: 5
+    expectCompletionLabels: [TABLE, KEYSPACE, INDEX, TYPE, ROLE, USER]
+    expectMissingLabels: [SELECT, INSERT, FROM, WHERE]
+
+  # ---------------------------------------------------------------------------
+  # USE Statement - Comprehensive Tests
+  # ---------------------------------------------------------------------------
+
+  - name: context-use-partial
+    query: "USE my"
+    position: 6
+    expectContext: after_use
+    expectPrefix: "my"
+
+  - name: complete-use-with-schema
+    query: "USE "
+    position: 4
+    schemaRef: multi_keyspace
+    expectCompletionLabels: [myapp, analytics]
+    expectMissingLabels: [SELECT, FROM, WHERE]
+
+  # ---------------------------------------------------------------------------
+  # DESCRIBE Statement - Per ScyllaDB Docs
+  # ---------------------------------------------------------------------------
+
+  - name: context-after-describe
+    query: "DESCRIBE "
+    position: 9
+    expectContext: after_describe
+    expectPrefix: ""
+
+  - name: context-after-desc
+    query: "DESC "
+    position: 5
+    expectContext: after_describe
+    expectPrefix: ""
+
+  - name: complete-describe-keywords
+    query: "DESCRIBE "
+    position: 9
+    expectCompletionLabels: [SCHEMA, KEYSPACE, TABLE, INDEX, "MATERIALIZED VIEW", TYPE, FUNCTION, AGGREGATE, CLUSTER]
+    expectMissingLabels: [SELECT, INSERT, WHERE]
+
+  - name: complete-describe-with-schema
+    query: "DESCRIBE "
+    position: 9
+    schemaRef: multi_keyspace
+    expectCompletionLabels: [SCHEMA, KEYSPACE, TABLE, myapp, analytics]
+    comment: "DESCRIBE should also suggest keyspaces directly"
+
+  # ---------------------------------------------------------------------------
+  # PRUNE Statement - ScyllaDB Extension
+  # ---------------------------------------------------------------------------
+
+  - name: context-after-prune
+    query: "PRUNE "
+    position: 6
+    expectContext: after_prune
+    expectPrefix: ""
+
+  - name: complete-prune-keywords
+    query: "PRUNE "
+    position: 6
+    expectCompletionLabels: ["MATERIALIZED VIEW"]
+    expectMissingLabels: [TABLE, KEYSPACE, INDEX, SELECT]
+    comment: "PRUNE can only be followed by MATERIALIZED VIEW"
+
+  # ---------------------------------------------------------------------------
+  # Edge Cases and Complex Queries
+  # ---------------------------------------------------------------------------
+
+  # Multiline query - cursor at end of first line
+  - name: context-multiline-select
+    query: "SELECT *\nFROM users"
+    position: 8
+    expectContext: after_select
+    expectPrefix: "*"
+    comment: "At position 8 (before newline), we're still selecting the *"
+
+  # Subquery context
+  - name: context-subquery-select
+    query: "SELECT * FROM users WHERE id IN (SELECT "
+    position: 40
+    expectContext: after_select
+    expectPrefix: ""
+
+  # After table alias
+  - name: context-table-alias
+    query: "SELECT * FROM users u "
+    position: 22
+    expectContext: after_select_table
+    expectPrefix: ""
+
+  # With JSON
+  - name: context-select-json
+    query: "SELECT JSON * FROM users "
+    position: 25
+    expectContext: after_select_table
+    expectPrefix: ""
+
+  # DISTINCT - still in column list, can add columns or FROM
+  - name: context-select-distinct
+    query: "SELECT DISTINCT "
+    position: 16
+    expectContext: after_select
+    expectPrefix: ""
+    comment: "DISTINCT is in column list, offer columns and FROM"
+
+  # COUNT(*)
+  - name: context-select-count-star
+    query: "SELECT COUNT(*) FROM users "
+    position: 27
+    expectContext: after_select_table
+    expectPrefix: ""
+
+  # Multiple tables (though CQL doesn't support JOINs, some patterns exist)
+  - name: context-from-partial-table
+    query: "SELECT * FROM use"
+    position: 17
+    expectContext: after_from
+    expectPrefix: "use"
+
+  # TTL and TIMESTAMP in SELECT
+  - name: context-select-ttl
+    query: "SELECT TTL(name) FROM users "
+    position: 28
+    expectContext: after_select_table
+    expectPrefix: ""
+
+  # WRITETIME
+  - name: context-select-writetime
+    query: "SELECT WRITETIME(name) FROM users "
+    position: 34
+    expectContext: after_select_table
+    expectPrefix: ""
+
+  # Batch statement
+  - name: context-batch-start
+    query: "BEGIN BATCH "
+    position: 12
+    expectContext: unknown
+    expectPrefix: ""
+    comment: "Inside BATCH, could be any DML statement"
+
+  # Token function in WHERE
+  - name: context-where-token
+    query: "SELECT * FROM users WHERE token(id) > "
+    position: 38
+    expectContext: after_operator
+    expectPrefix: ""
+
+  # ALLOW FILTERING at end
+  - name: context-allow-filtering
+    query: "SELECT * FROM users WHERE status = 'active' ALLOW FILTERING "
+    position: 60
+    expectContext: after_and
+    expectPrefix: ""
+    comment: "After complete WHERE condition, shows AND and other options"
+
+  # IF NOT EXISTS
+  - name: context-insert-if-not-exists
+    query: "INSERT INTO users (id) VALUES (?) IF NOT EXISTS "
+    position: 48
+    expectContext: unknown
+    expectPrefix: ""
+
+  # IF EXISTS for UPDATE
+  - name: context-update-if-exists
+    query: "UPDATE users SET name = 'test' WHERE id = 1 IF EXISTS "
+    position: 54
+    expectContext: after_update_set
+    expectPrefix: ""
+    comment: "Falls through to after_update_set context"
+
+  # USING TTL
+  - name: context-insert-using-ttl
+    query: "INSERT INTO users (id) VALUES (?) USING TTL "
+    position: 44
+    expectContext: unknown
+    expectPrefix: ""
+
+  # ---------------------------------------------------------------------------
+  # Prefix Filtering Tests
+  # ---------------------------------------------------------------------------
+
+  - name: complete-prefix-sel
+    query: "SEL"
+    position: 3
+    expectCompletionLabels: [SELECT, "SELECT * FROM", "SELECT ... WHERE"]
+    expectMissingLabels: [INSERT, UPDATE, DELETE]
+
+  - name: complete-prefix-ins
+    query: "INS"
+    position: 3
+    expectCompletionLabels: [INSERT, "INSERT INTO ... VALUES"]
+    expectMissingLabels: [SELECT, UPDATE, DELETE]
+
+  - name: complete-prefix-wh
+    query: "SELECT * FROM users WH"
+    position: 22
+    expectContext: after_select_table
+    expectPrefix: "WH"
+
+  - name: complete-prefix-filter-where
+    query: "SELECT * FROM users WH"
+    position: 22
+    expectCompletionLabels: [WHERE]
+    expectMissingLabels: ["ORDER BY", "GROUP BY", LIMIT]
+
+  - name: complete-prefix-or
+    query: "SELECT * FROM users OR"
+    position: 22
+    expectCompletionLabels: ["ORDER BY"]
+    expectMissingLabels: [WHERE, LIMIT]
+
+  # ---------------------------------------------------------------------------
+  # Schema-Aware Column Tests
+  # ---------------------------------------------------------------------------
+
+  - name: complete-where-columns-with-schema
+    query: "SELECT * FROM myapp.users WHERE "
+    position: 32
+    schemaRef: simple_users
+    expectCompletionLabels: [user_id, created_at, name, email, status]
+    expectCompletionKinds: [column, function]
+
+  - name: complete-set-columns-with-schema
+    query: "UPDATE myapp.users SET "
+    position: 23
+    schemaRef: simple_users
+    expectCompletionLabels: [user_id, created_at, name, email, status]
+
+  - name: complete-order-by-columns-with-schema
+    query: "SELECT * FROM myapp.orders ORDER BY "
+    position: 36
+    schemaRef: simple_users
+    # ASC/DESC are only valid AFTER a column name
+    expectCompletionLabels: [user_id, order_id, total, items]
+
+  # ---------------------------------------------------------------------------
+  # WHERE Column Operator Tests
+  # ---------------------------------------------------------------------------
+
+  - name: context-where-column-need-operator
+    query: "SELECT * FROM users WHERE build_hour "
+    position: 37
+    expectContext: after_column
+    expectPrefix: ""
+    comment: "After column in WHERE, need operator"
+
+  - name: complete-where-column-need-operator
+    query: "SELECT * FROM users WHERE id "
+    position: 29
+    # CQL operators: =, <, >, <=, >=, IN, NOT IN, CONTAINS, CONTAINS KEY, LIKE (no != in CQL!)
+    expectCompletionLabels: ["=", "<", "<=", ">", ">=", IN, "NOT IN", CONTAINS]
+    expectMissingLabels: [WHERE, ORDER BY, LIMIT, FROM, SELECT, "!="]
+    comment: "After column in WHERE, suggest operators (CQL has no != operator)"
+
+  - name: context-where-and-column-need-operator
+    query: "SELECT * FROM users WHERE id = 1 AND status "
+    position: 44
+    expectContext: after_column
+    expectPrefix: ""
+    comment: "After column following AND, need operator"
+
+  - name: complete-where-and-column-need-operator
+    query: "SELECT * FROM users WHERE id = 1 AND status "
+    position: 44
+    expectCompletionLabels: ["=", "<", IN, "NOT IN"]
+    expectMissingLabels: [WHERE, ORDER BY, AND, "!="]
+    comment: "After column following AND, suggest operators (CQL has no != operator)"
+
+  - name: context-where-partial-column
+    query: "SELECT * FROM users WHERE sta"
+    position: 29
+    expectContext: after_where
+    expectPrefix: "sta"
+    comment: "Partial column name in WHERE"

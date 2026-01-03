@@ -1,0 +1,624 @@
+description: Fixture-based tests for CQL error transformation
+
+fixtures:
+  # ============================================
+  # TYPO TESTS - Statement keywords
+  # ============================================
+  - name: typo-selec-for-select
+    query: "SELEC * FROM users;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, SELEC]
+    expectSuggestionContains: SELECT
+
+  - name: typo-slect-for-select
+    query: "SLECT * FROM users;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, SLECT]
+    expectSuggestionContains: SELECT
+
+  - name: typo-insrt-for-insert
+    query: "INSRT INTO users (id) VALUES (1);"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, INSRT]
+    expectSuggestionContains: INSERT
+
+  - name: typo-udpate-for-update
+    query: "UDPATE users SET name = 'test' WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, UDPATE]
+    expectSuggestionContains: UPDATE
+
+  - name: typo-delte-for-delete
+    query: "DELTE FROM users WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, DELTE]
+    expectSuggestionContains: DELETE
+
+  - name: typo-cretae-for-create
+    query: "CRETAE TABLE users (id int PRIMARY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, CRETAE]
+    expectSuggestionContains: CREATE
+
+  - name: typo-trunacte-for-truncate
+    query: "TRUNACTE users;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, TRUNACTE]
+    expectSuggestionContains: TRUNCATE
+
+  - name: typo-atler-for-alter
+    query: "ATLER TABLE users ADD age int;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, ATLER]
+    expectSuggestionContains: ALTER
+
+  - name: typo-dorp-for-drop
+    query: "DORP TABLE users;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, DORP]
+    expectSuggestionContains: DROP
+
+  # ============================================
+  # TYPO TESTS - Clause keywords
+  # ============================================
+  - name: typo-form-for-from
+    query: "SELECT * FORM users;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, FORM]
+    expectSuggestionContains: FROM
+
+  - name: typo-frmo-for-from
+    query: "SELECT * FRMO users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: FROM
+
+  - name: typo-wher-for-where
+    query: "SELECT * FROM users WHER id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, WHER]
+    expectSuggestionContains: WHERE
+
+  - name: typo-whre-for-where
+    query: "SELECT * FROM users WHRE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, WHRE]
+    expectSuggestionContains: WHERE
+
+  - name: typo-limti-for-limit
+    query: "SELECT * FROM users LIMTI 10;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, LIMTI]
+    expectSuggestionContains: LIMIT
+
+  - name: typo-ordr-for-order
+    query: "SELECT * FROM users ORDR BY id;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, ORDR]
+    expectSuggestionContains: ORDER
+
+  - name: typo-orde-for-order
+    query: "SELECT * FROM users ORDE BY id;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, ORDE]
+    expectSuggestionContains: ORDER
+
+  - name: typo-tabl-for-table
+    query: "CREATE TABL users (id int PRIMARY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: TABLE
+
+  - name: typo-tabel-for-table
+    query: "CREATE TABEL users (id int PRIMARY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: TABLE
+
+  - name: typo-primry-for-primary
+    query: "CREATE TABLE users (id int PRIMRY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: PRIMARY
+
+  - name: typo-keysapce-for-keyspace
+    query: "CREATE KEYSAPCE test WITH replication = {'class': 'SimpleStrategy'};"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: KEYSPACE
+
+  - name: typo-valus-for-values
+    query: "INSERT INTO users (id) VALUS (1);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: VALUES
+
+  - name: typo-vlaues-for-values
+    query: "INSERT INTO users (id) VLAUES (1);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: VALUES
+
+  - name: typo-usign-for-using
+    query: "INSERT INTO users (id) VALUES (1) USIGN TTL 3600;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, USIGN]
+    expectSuggestionContains: USING
+
+  - name: typo-uisng-for-using
+    query: "UPDATE users UISNG TTL 3600 SET name = 'test' WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: USING
+
+  - name: typo-idnex-for-index
+    query: "CREATE IDNEX ON users (name);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: INDEX
+
+  - name: typo-indx-for-index
+    query: "CREATE INDX ON users (name);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: INDEX
+
+  - name: typo-distict-for-distinct
+    query: "SELECT DISTICT id FROM users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: DISTINCT
+
+  - name: typo-alolw-for-allow
+    query: "SELECT * FROM users ALOLW FILTERING;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, ALOLW]
+    expectSuggestionContains: ALLOW
+
+  - name: typo-filetering-for-filtering
+    query: "SELECT * FROM users ALLOW FILETERING;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: FILTERING
+
+  - name: typo-timestmap-for-timestamp
+    query: "INSERT INTO users (id) VALUES (1) USING TIMESTMAP 123;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: TIMESTAMP
+
+  - name: typo-replicaiton-for-replication
+    query: "CREATE KEYSPACE test WITH REPLICAITON = {'class': 'SimpleStrategy'};"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: REPLICATION
+
+  - name: typo-exsits-for-exists
+    query: "CREATE TABLE IF NOT EXSITS users (id int PRIMARY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: EXISTS
+
+  - name: typo-begen-for-begin
+    query: "BEGEN BATCH INSERT INTO users (id) VALUES (1); APPLY BATCH;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, BEGEN]
+    expectSuggestionContains: BEGIN
+
+  - name: typo-appyl-for-apply
+    query: "BEGIN BATCH INSERT INTO users (id) VALUES (1); APPYL BATCH;"
+    expectError: true
+    expectFriendlyContains: [Unknown keyword, APPYL]
+    expectSuggestionContains: APPLY
+
+  - name: typo-btach-for-batch
+    query: "BEGIN BTACH INSERT INTO users (id) VALUES (1); APPLY BATCH;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+    expectSuggestionContains: BATCH
+
+  # ============================================
+  # SELECT ERRORS
+  # ============================================
+  - name: select-missing-from
+    query: "SELECT * users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: select-missing-table
+    query: "SELECT * FROM;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: select-missing-columns
+    query: "SELECT FROM users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: select-double-from
+    query: "SELECT * FROM FROM users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected, FROM]
+
+  - name: select-order-without-by
+    query: "SELECT * FROM users ORDER id;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: select-limit-without-number
+    query: "SELECT * FROM users LIMIT;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: select-where-missing-condition
+    query: "SELECT * FROM users WHERE;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: select-where-incomplete-condition
+    query: "SELECT * FROM users WHERE id =;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: select-invalid-operator
+    query: "SELECT * FROM users WHERE id == 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: select-allow-without-filtering
+    query: "SELECT * FROM users ALLOW;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  # ============================================
+  # INSERT ERRORS
+  # ============================================
+  - name: insert-missing-into
+    query: "INSERT users (id) VALUES (1);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: insert-missing-table
+    query: "INSERT INTO (id) VALUES (1);"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: insert-missing-columns
+    query: "INSERT INTO users VALUES (1);"
+    expectError: false
+    comment: CQL allows INSERT without explicit column list
+
+  - name: insert-missing-values
+    query: "INSERT INTO users (id);"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: insert-missing-values-keyword
+    query: "INSERT INTO users (id) (1);"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: insert-unclosed-columns
+    query: "INSERT INTO users (id VALUES (1);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: insert-unclosed-values
+    query: "INSERT INTO users (id) VALUES (1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: insert-column-value-mismatch-extra-value
+    query: "INSERT INTO users (id) VALUES (1, 'extra');"
+    expectError: false
+    comment: Column/value count mismatch is a semantic error, not syntax
+
+  - name: insert-using-without-option
+    query: "INSERT INTO users (id) VALUES (1) USING;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: insert-ttl-without-value
+    query: "INSERT INTO users (id) VALUES (1) USING TTL;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  # ============================================
+  # UPDATE ERRORS
+  # ============================================
+  - name: update-missing-set
+    query: "UPDATE users WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: update-missing-table
+    query: "UPDATE SET name = 'test' WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: update-missing-where
+    query: "UPDATE users SET name = 'test';"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: update-set-without-assignment
+    query: "UPDATE users SET WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: update-incomplete-assignment
+    query: "UPDATE users SET name = WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: update-missing-equals
+    query: "UPDATE users SET name 'test' WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  # ============================================
+  # DELETE ERRORS
+  # ============================================
+  - name: delete-missing-from
+    query: "DELETE users WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: delete-missing-table
+    query: "DELETE FROM WHERE id = 1;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: delete-missing-where
+    query: "DELETE FROM users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: delete-incomplete-where
+    query: "DELETE FROM users WHERE;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  # ============================================
+  # DDL ERRORS - CREATE TABLE
+  # ============================================
+  - name: create-table-missing-name
+    query: "CREATE TABLE (id int PRIMARY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: create-table-missing-columns
+    query: "CREATE TABLE users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: create-table-missing-primary-key
+    query: "CREATE TABLE users (id int, name text);"
+    expectError: false
+    comment: Missing PRIMARY KEY is a semantic error, parser accepts it
+
+  - name: create-table-unclosed-parens
+    query: "CREATE TABLE users (id int PRIMARY KEY;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: create-table-missing-column-type
+    query: "CREATE TABLE users (id PRIMARY KEY);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: create-table-with-without-options
+    query: "CREATE TABLE users (id int PRIMARY KEY) WITH;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  # ============================================
+  # DDL ERRORS - CREATE KEYSPACE
+  # ============================================
+  - name: create-keyspace-missing-name
+    query: "CREATE KEYSPACE WITH replication = {'class': 'SimpleStrategy'};"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: create-keyspace-missing-with
+    query: "CREATE KEYSPACE test replication = {'class': 'SimpleStrategy'};"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: create-keyspace-missing-replication
+    query: "CREATE KEYSPACE test WITH;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  # ============================================
+  # DDL ERRORS - CREATE INDEX
+  # ============================================
+  - name: create-index-missing-on
+    query: "CREATE INDEX users (name);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: create-index-missing-table
+    query: "CREATE INDEX ON (name);"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  - name: create-index-missing-column
+    query: "CREATE INDEX ON users;"
+    expectError: true
+    expectFriendlyContains: [Unexpected]
+
+  # ============================================
+  # BATCH ERRORS
+  # ============================================
+  - name: batch-missing-apply
+    query: "BEGIN BATCH INSERT INTO users (id) VALUES (1);"
+    expectError: false
+    comment: Incomplete batch without APPLY is parsed as valid (incomplete statement)
+
+  - name: batch-missing-batch-keyword
+    query: "BEGIN INSERT INTO users (id) VALUES (1); APPLY BATCH;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: batch-empty
+    query: "BEGIN BATCH APPLY BATCH;"
+    expectError: false
+    comment: Empty batch is syntactically valid
+
+  # ============================================
+  # STRING/LITERAL ERRORS
+  # ============================================
+  - name: unclosed-string-single-quote
+    query: "SELECT * FROM users WHERE name = 'test;"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  - name: unclosed-string-in-insert
+    query: "INSERT INTO users (id, name) VALUES (1, 'Alice);"
+    expectError: true
+    expectFriendlyContains: [Unexpected syntax]
+
+  # ============================================
+  # VALID QUERIES (should NOT error)
+  # ============================================
+  - name: valid-simple-select
+    query: "SELECT * FROM users;"
+    expectError: false
+
+  - name: valid-select-no-semicolon
+    query: "SELECT * FROM users"
+    expectError: false
+    comment: Missing semicolon is handled gracefully
+
+  - name: valid-select-with-where
+    query: "SELECT * FROM users WHERE id = 1;"
+    expectError: false
+
+  - name: valid-select-with-limit
+    query: "SELECT * FROM users LIMIT 10;"
+    expectError: false
+
+  - name: valid-select-with-order
+    query: "SELECT * FROM users WHERE id = 1 ORDER BY created_at DESC;"
+    expectError: false
+
+  - name: valid-select-with-allow-filtering
+    query: "SELECT * FROM users WHERE name = 'test' ALLOW FILTERING;"
+    expectError: false
+
+  - name: valid-select-distinct
+    query: "SELECT DISTINCT id FROM users;"
+    expectError: false
+
+  - name: valid-select-count
+    query: "SELECT COUNT(*) FROM users;"
+    expectError: false
+
+  - name: valid-select-json
+    query: "SELECT JSON * FROM users;"
+    expectError: false
+
+  - name: valid-insert
+    query: "INSERT INTO users (id, name) VALUES (1, 'test');"
+    expectError: false
+
+  - name: valid-insert-if-not-exists
+    query: "INSERT INTO users (id, name) VALUES (1, 'test') IF NOT EXISTS;"
+    expectError: false
+
+  - name: valid-insert-using-ttl
+    query: "INSERT INTO users (id, name) VALUES (1, 'test') USING TTL 3600;"
+    expectError: false
+
+  - name: valid-insert-json
+    query: "INSERT INTO users JSON '{\"id\": 1, \"name\": \"test\"}';"
+    expectError: false
+
+  - name: valid-update
+    query: "UPDATE users SET name = 'test' WHERE id = 1;"
+    expectError: false
+
+  - name: valid-update-if-exists
+    query: "UPDATE users SET name = 'test' WHERE id = 1 IF EXISTS;"
+    expectError: false
+
+  - name: valid-update-using-ttl
+    query: "UPDATE users USING TTL 3600 SET name = 'test' WHERE id = 1;"
+    expectError: false
+
+  - name: valid-delete
+    query: "DELETE FROM users WHERE id = 1;"
+    expectError: false
+
+  - name: valid-delete-column
+    query: "DELETE name FROM users WHERE id = 1;"
+    expectError: false
+
+  - name: valid-delete-if-exists
+    query: "DELETE FROM users WHERE id = 1 IF EXISTS;"
+    expectError: false
+
+  - name: valid-create-table
+    query: "CREATE TABLE users (id int PRIMARY KEY, name text);"
+    expectError: false
+
+  - name: valid-create-table-composite-key
+    query: "CREATE TABLE users (id int, ts timestamp, name text, PRIMARY KEY (id, ts));"
+    expectError: false
+
+  - name: valid-create-table-if-not-exists
+    query: "CREATE TABLE IF NOT EXISTS users (id int PRIMARY KEY);"
+    expectError: false
+
+  - name: valid-create-keyspace
+    query: "CREATE KEYSPACE test WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};"
+    expectError: false
+
+  - name: valid-create-index
+    query: "CREATE INDEX ON users (name);"
+    expectError: false
+
+  - name: valid-create-index-named
+    query: "CREATE INDEX user_name_idx ON users (name);"
+    expectError: false
+
+  - name: valid-drop-table
+    query: "DROP TABLE users;"
+    expectError: false
+
+  - name: valid-drop-table-if-exists
+    query: "DROP TABLE IF EXISTS users;"
+    expectError: false
+
+  - name: valid-truncate
+    query: "TRUNCATE users;"
+    expectError: false
+
+  - name: valid-alter-table-add
+    query: "ALTER TABLE users ADD age int;"
+    expectError: false
+
+  - name: valid-alter-table-drop
+    query: "ALTER TABLE users DROP email;"
+    expectError: false
+
+  - name: valid-batch
+    query: "BEGIN BATCH INSERT INTO users (id) VALUES (1); INSERT INTO users (id) VALUES (2); APPLY BATCH;"
+    expectError: false
+
+  - name: valid-batch-unlogged
+    query: "BEGIN UNLOGGED BATCH INSERT INTO users (id) VALUES (1); APPLY BATCH;"
+    expectError: false
+
+  - name: valid-use-keyspace
+    query: "USE mykeyspace;"
+    expectError: false
+
+  - name: valid-prepared-statement
+    query: "SELECT * FROM users WHERE id = ?;"
+    expectError: false
+
+  - name: valid-named-parameter
+    query: "SELECT * FROM users WHERE id = :user_id;"
+    expectError: false

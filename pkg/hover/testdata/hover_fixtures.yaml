@@ -1,0 +1,417 @@
+# Hover package test fixtures
+# Tests token finding and hover content generation
+
+# =============================================================================
+# Schema Definitions
+# =============================================================================
+schemas:
+  simple_users:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [user_id]
+            clusteringKey: [created_at]
+            columns:
+              - { name: user_id, type: uuid }
+              - { name: created_at, type: timestamp }
+              - { name: name, type: text }
+              - { name: email, type: text }
+              - { name: status, type: text }
+          - name: orders
+            partitionKey: [user_id]
+            clusteringKey: [order_id]
+            columns:
+              - { name: user_id, type: uuid }
+              - { name: order_id, type: timeuuid }
+              - { name: total, type: decimal }
+              - { name: items, type: "list<text>" }
+
+  multi_keyspace:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [id]
+            columns:
+              - { name: id, type: uuid }
+              - { name: name, type: text }
+      - name: analytics
+        tables:
+          - name: events
+            partitionKey: [event_id]
+            columns:
+              - { name: event_id, type: uuid }
+              - { name: type, type: text }
+
+# =============================================================================
+# Test Cases
+# =============================================================================
+tests:
+  # ---------------------------------------------------------------------------
+  # Token Finding Tests
+  # ---------------------------------------------------------------------------
+
+  - name: token-keyword-select
+    query: "SELECT * FROM users"
+    position: 3
+    expectToken: "SELECT"
+    expectTokenStart: 0
+    expectTokenEnd: 6
+
+  - name: token-keyword-from
+    query: "SELECT * FROM users"
+    position: 11
+    expectToken: "FROM"
+    expectTokenStart: 9
+    expectTokenEnd: 13
+
+  - name: token-identifier-table
+    query: "SELECT * FROM users"
+    position: 16
+    expectToken: "users"
+    expectTokenStart: 14
+    expectTokenEnd: 19
+
+  - name: token-function-now
+    query: "SELECT now() FROM users"
+    position: 8
+    expectToken: "now"
+    expectTokenStart: 7
+    expectTokenEnd: 10
+
+  - name: token-function-count
+    query: "SELECT count(*) FROM users"
+    position: 9
+    expectToken: "count"
+    expectTokenStart: 7
+    expectTokenEnd: 12
+
+  - name: token-cursor-at-end
+    query: "SELECT"
+    position: 6
+    expectToken: "SELECT"
+    expectTokenStart: 0
+    expectTokenEnd: 6
+
+  - name: token-cursor-in-whitespace
+    query: "SELECT  FROM"
+    position: 7
+    expectToken: ""
+    comment: "No token at whitespace position"
+
+  # ---------------------------------------------------------------------------
+  # Keyword Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-keyword-select
+    query: "SELECT * FROM users"
+    position: 3
+    expectKind: keyword
+    expectName: SELECT
+    expectContentContains: "Retrieves data"
+
+  - name: hover-keyword-insert
+    query: "INSERT INTO users"
+    position: 3
+    expectKind: keyword
+    expectName: INSERT
+    expectContentContains: "new row"
+
+  - name: hover-keyword-update
+    query: "UPDATE users SET"
+    position: 3
+    expectKind: keyword
+    expectName: UPDATE
+    expectContentContains: "Modifies existing"
+
+  - name: hover-keyword-delete
+    query: "DELETE FROM users"
+    position: 3
+    expectKind: keyword
+    expectName: DELETE
+    expectContentContains: "Removes rows"
+
+  - name: hover-keyword-where
+    query: "SELECT * FROM users WHERE id = 1"
+    position: 23
+    expectKind: keyword
+    expectName: WHERE
+    expectContentContains: "Filter"
+
+  - name: hover-keyword-create
+    query: "CREATE TABLE"
+    position: 3
+    expectKind: keyword
+    expectName: CREATE
+    expectContentContains: "Creates"
+
+  - name: hover-keyword-drop
+    query: "DROP TABLE users"
+    position: 2
+    expectKind: keyword
+    expectName: DROP
+    expectContentContains: "Removes"
+
+  - name: hover-keyword-order-by
+    query: "SELECT * FROM users ORDER BY name"
+    position: 23
+    expectKind: keyword
+    expectName: ORDER
+
+  - name: hover-keyword-limit
+    query: "SELECT * FROM users LIMIT 10"
+    position: 22
+    expectKind: keyword
+    expectName: LIMIT
+    expectContentContains: "Limits"
+
+  - name: hover-keyword-allow-filtering
+    query: "SELECT * FROM users ALLOW FILTERING"
+    position: 22
+    expectKind: keyword
+    expectName: ALLOW
+
+  # ---------------------------------------------------------------------------
+  # Function Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-function-now
+    query: "SELECT now() FROM users"
+    position: 8
+    expectKind: function
+    expectName: now
+    expectContentContains: "timeuuid"
+
+  - name: hover-function-uuid
+    query: "INSERT INTO users (id) VALUES (uuid())"
+    position: 34
+    expectKind: function
+    expectName: uuid
+    expectContentContains: "UUID"
+
+  - name: hover-function-token
+    query: "SELECT * FROM users WHERE token(user_id) > token(1)"
+    position: 29
+    expectKind: function
+    expectName: token
+    expectContentContains: "partition"
+
+  - name: hover-function-count
+    query: "SELECT count(*) FROM users"
+    position: 9
+    expectKind: function
+    expectName: count
+    expectContentContains: "Counts"
+
+  - name: hover-function-writetime
+    query: "SELECT writetime(name) FROM users"
+    position: 12
+    expectKind: function
+    expectName: writetime
+    expectContentContains: "timestamp"
+
+  - name: hover-function-ttl
+    query: "SELECT ttl(name) FROM users"
+    position: 9
+    expectKind: function
+    expectName: ttl
+    expectContentContains: "TTL"
+
+  - name: hover-function-tojson
+    query: "SELECT toJson(name) FROM users"
+    position: 10
+    expectKind: function
+    expectName: toJson
+    expectContentContains: "JSON"
+
+  # ---------------------------------------------------------------------------
+  # Type Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-type-uuid
+    query: "CREATE TABLE users (id uuid PRIMARY KEY)"
+    position: 23
+    expectKind: type
+    expectName: uuid
+    expectContentContains: "UUID"
+
+  - name: hover-type-text
+    query: "CREATE TABLE users (name text)"
+    position: 25
+    expectKind: type
+    expectName: text
+    expectContentContains: "UTF-8"
+
+  - name: hover-type-int
+    query: "CREATE TABLE users (age int)"
+    position: 24
+    expectKind: type
+    expectName: int
+    expectContentContains: "32-bit"
+
+  - name: hover-type-timestamp
+    query: "CREATE TABLE users (created timestamp)"
+    position: 30
+    expectKind: type
+    expectName: timestamp
+    expectContentContains: "Date and time"
+
+  - name: hover-type-bigint
+    query: "CREATE TABLE users (count bigint)"
+    position: 27
+    expectKind: type
+    expectName: bigint
+    expectContentContains: "64-bit"
+
+  # ---------------------------------------------------------------------------
+  # Schema-Aware Column Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-column-partition-key
+    query: "SELECT user_id FROM myapp.users"
+    position: 10
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectKind: column
+    expectName: user_id
+    expectContentContains: "partition key"
+
+  - name: hover-column-clustering-key
+    query: "SELECT created_at FROM myapp.users"
+    position: 12
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectKind: column
+    expectName: created_at
+    expectContentContains: "clustering key"
+
+  - name: hover-column-regular
+    query: "SELECT name FROM myapp.users"
+    position: 9
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectKind: column
+    expectName: name
+    expectContentContains: "text"
+
+  - name: hover-column-in-where
+    query: "SELECT * FROM myapp.users WHERE user_id = 1"
+    position: 35
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectKind: column
+    expectName: user_id
+    expectContentContains: "uuid"
+
+  - name: hover-column-in-update
+    query: "UPDATE myapp.users SET email = 'test' WHERE user_id = 1"
+    position: 24
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectKind: column
+    expectName: email
+    expectContentContains: "text"
+
+  # ---------------------------------------------------------------------------
+  # Schema-Aware Table Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-table-simple
+    query: "SELECT * FROM users"
+    position: 16
+    schemaRef: simple_users
+    defaultKeyspace: myapp
+    expectKind: table
+    expectName: users
+    expectContentContains: "column"
+
+  - name: hover-table-qualified
+    query: "SELECT * FROM myapp.users"
+    position: 22
+    schemaRef: simple_users
+    expectKind: table
+    expectName: users
+    expectContentContains: "Partition key"
+
+  - name: hover-table-in-update
+    query: "UPDATE myapp.orders SET total = 100"
+    position: 15
+    schemaRef: simple_users
+    expectKind: table
+    expectName: orders
+    expectContentContains: "column"
+
+  # ---------------------------------------------------------------------------
+  # Schema-Aware Keyspace Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-keyspace
+    query: "SELECT * FROM myapp.users"
+    position: 17
+    schemaRef: multi_keyspace
+    expectKind: keyspace
+    expectName: myapp
+    expectContentContains: "keyspace"
+
+  - name: hover-keyspace-use
+    query: "USE analytics"
+    position: 8
+    schemaRef: multi_keyspace
+    expectKind: keyspace
+    expectName: analytics
+    expectContentContains: "table"
+
+  # ---------------------------------------------------------------------------
+  # Edge Cases
+  # ---------------------------------------------------------------------------
+
+  - name: hover-empty-query
+    query: ""
+    position: 0
+    expectNoHover: true
+
+  - name: hover-position-beyond-query
+    query: "SELECT"
+    position: 100
+    expectToken: "SELECT"
+    comment: "Position clamped to query end"
+
+  - name: hover-case-insensitive-keyword
+    query: "select * from users"
+    position: 3
+    expectKind: keyword
+    expectName: SELECT
+    comment: "Keywords are case-insensitive"
+
+  - name: hover-case-insensitive-function
+    query: "SELECT NOW() FROM users"
+    position: 8
+    expectKind: function
+    expectName: now
+    comment: "Functions are case-insensitive"
+
+  # ---------------------------------------------------------------------------
+  # Operator/Wildcard Hover Tests
+  # ---------------------------------------------------------------------------
+
+  - name: hover-asterisk-select-all
+    query: "SELECT * FROM users"
+    position: 7
+    expectKind: operator
+    expectName: "*"
+    expectContentContains: "all columns"
+
+  - name: hover-asterisk-in-count
+    query: "SELECT count(*) FROM users"
+    position: 13
+    expectKind: operator
+    expectName: "*"
+    expectContentContains: "all columns"
+
+  - name: token-asterisk
+    query: "SELECT * FROM users"
+    position: 7
+    expectToken: "*"
+    expectTokenStart: 7
+    expectTokenEnd: 8

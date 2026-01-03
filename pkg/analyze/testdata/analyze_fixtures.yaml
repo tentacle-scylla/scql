@@ -1,0 +1,368 @@
+# Analyze package test fixtures
+# Schemas are defined once and referenced by name in test cases
+
+# =============================================================================
+# Schema Definitions
+# =============================================================================
+schemas:
+  simple_users:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [id]
+            columns:
+              - { name: id, type: uuid }
+              - { name: name, type: text }
+              - { name: email, type: text }
+              - { name: status, type: text }
+
+  users_with_clustering:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [id]
+            clusteringKey: [created_at]
+            columns:
+              - { name: id, type: uuid }
+              - { name: created_at, type: timestamp }
+              - { name: name, type: text }
+
+  events_composite_pk:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: events
+            partitionKey: [tenant_id, event_date]
+            columns:
+              - { name: tenant_id, type: uuid }
+              - { name: event_date, type: date }
+              - { name: data, type: text }
+
+  events_with_clustering:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: events
+            partitionKey: [user_id]
+            clusteringKey: [year, month, day]
+            columns:
+              - { name: user_id, type: uuid }
+              - { name: year, type: int }
+              - { name: month, type: int }
+              - { name: day, type: int }
+              - { name: data, type: text }
+
+  multi_keyspace:
+    keyspaces:
+      - name: myapp
+        tables:
+          - name: users
+            partitionKey: [id]
+            columns:
+              - { name: id, type: uuid }
+              - { name: name, type: text }
+      - name: analytics
+        tables:
+          - name: events
+            partitionKey: [id]
+            columns:
+              - { name: id, type: uuid }
+              - { name: type, type: text }
+
+# =============================================================================
+# Test Cases
+# =============================================================================
+tests:
+  # ---------------------------------------------------------------------------
+  # Reference Extraction Tests (no schema needed)
+  # ---------------------------------------------------------------------------
+
+  - name: extract-select-simple
+    query: "SELECT id, name FROM users"
+    expectTable: users
+    expectColumns: [id, name]
+    expectSelectColumns: [id, name]
+
+  - name: extract-select-star
+    query: "SELECT * FROM users"
+    expectTable: users
+    expectSelectColumns: ["*"]
+
+  - name: extract-select-with-keyspace
+    query: "SELECT id FROM myks.users"
+    expectKeyspace: myks
+    expectTable: users
+    expectColumns: [id]
+
+  - name: extract-select-with-where
+    query: "SELECT id, name FROM users WHERE id = 1 AND status = 'active'"
+    expectTable: users
+    expectColumns: [id, name, status]
+    expectSelectColumns: [id, name]
+    expectWhereColumns: [id, status]
+
+  - name: extract-select-with-order-by
+    query: "SELECT id, name FROM users WHERE id = 1 ORDER BY created_at DESC"
+    expectTable: users
+    expectOrderByColumns: [created_at]
+
+  - name: extract-select-with-limit
+    query: "SELECT * FROM users LIMIT 100"
+    expectTable: users
+    expectLimit: 100
+
+  - name: extract-select-with-allow-filtering
+    query: "SELECT * FROM users WHERE name = 'test' ALLOW FILTERING"
+    expectTable: users
+    expectHasAllowFiltering: true
+
+  - name: extract-select-with-functions
+    query: "SELECT id, count(*) FROM users WHERE token(id) > 0"
+    expectTable: users
+    expectFunctions: [count, token]
+
+  - name: extract-insert-simple
+    query: "INSERT INTO users (id, name, email) VALUES (1, 'test', 'test@example.com')"
+    expectTable: users
+    expectInsertColumns: [id, name, email]
+
+  - name: extract-update-simple
+    query: "UPDATE users SET name = 'new', email = 'new@example.com' WHERE id = 1"
+    expectTable: users
+    expectUpdateColumns: [name, email]
+    expectWhereColumns: [id]
+
+  - name: extract-delete-simple
+    query: "DELETE FROM users WHERE id = 1"
+    expectTable: users
+    expectWhereColumns: [id]
+
+  # ---------------------------------------------------------------------------
+  # Schema Validation Tests
+  # ---------------------------------------------------------------------------
+
+  - name: schema-valid-query
+    query: "SELECT id, name, email FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectValid: true
+    expectSchemaErrorCount: 0
+
+  - name: schema-unknown-keyspace
+    query: "SELECT * FROM unknown_ks.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: unknown_keyspace
+    expectSchemaErrorContains: "unknown_ks"
+
+  - name: schema-unknown-keyspace-suggestion
+    query: "SELECT * FROM myap.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: unknown_keyspace
+    expectSuggestionContains: "myapp"
+
+  - name: schema-unknown-table
+    query: "SELECT * FROM myapp.unknown_table WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: unknown_table
+    expectSchemaErrorContains: "unknown_table"
+
+  - name: schema-unknown-table-suggestion
+    query: "SELECT * FROM myapp.usrs WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: unknown_table
+    expectSuggestionContains: "users"
+
+  - name: schema-unknown-column
+    query: "SELECT id, unknown_col FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: unknown_column
+    expectSchemaErrorContains: "unknown_col"
+
+  - name: schema-unknown-column-suggestion
+    query: "SELECT id, nam FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: unknown_column
+    expectSuggestionContains: "name"
+
+  - name: schema-multiple-unknown-columns
+    query: "SELECT id, col1, col2, col3 FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 3
+
+  # ---------------------------------------------------------------------------
+  # Partition Key Validation Tests
+  # ---------------------------------------------------------------------------
+
+  - name: partition-key-present
+    query: "SELECT * FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectWarningCount: 0
+
+  - name: partition-key-missing
+    query: "SELECT * FROM myapp.users WHERE name = 'test'"
+    schemaRef: simple_users
+    expectWarningType: missing_partition_key
+    expectWarningContains: "id"
+
+  - name: partition-key-composite-all-present
+    query: "SELECT * FROM myapp.events WHERE tenant_id = 1 AND event_date = '2024-01-01'"
+    schemaRef: events_composite_pk
+    expectWarningCount: 0
+
+  - name: partition-key-composite-partial
+    query: "SELECT * FROM myapp.events WHERE tenant_id = 1"
+    schemaRef: events_composite_pk
+    expectWarningType: missing_partition_key
+    expectWarningContains: "event_date"
+
+  # ---------------------------------------------------------------------------
+  # Clustering Key Validation Tests
+  # ---------------------------------------------------------------------------
+
+  - name: clustering-key-correct-order
+    query: "SELECT * FROM myapp.events WHERE user_id = 1 AND year = 2024 AND month = 1"
+    schemaRef: events_with_clustering
+    expectWarningType: ""
+
+  - name: clustering-key-skip-column
+    query: "SELECT * FROM myapp.events WHERE user_id = 1 AND month = 1"
+    schemaRef: events_with_clustering
+    expectWarningType: missing_clustering_key
+    expectWarningContains: "month"
+
+  # ---------------------------------------------------------------------------
+  # Warning Tests
+  # ---------------------------------------------------------------------------
+
+  - name: warn-select-star
+    query: "SELECT * FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    options:
+      warnOnSelectStar: true
+    expectWarningType: select_star
+
+  - name: warn-no-limit
+    query: "SELECT id FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    options:
+      warnOnNoLimit: true
+    expectWarningType: no_limit
+
+  - name: warn-large-limit
+    query: "SELECT id FROM myapp.users WHERE id = 1 LIMIT 50000"
+    schemaRef: simple_users
+    options:
+      largeLimitThreshold: 10000
+    expectWarningType: large_limit
+    expectWarningContains: "50000"
+
+  - name: warn-allow-filtering-present
+    query: "SELECT * FROM myapp.users WHERE name = 'test' ALLOW FILTERING"
+    schemaRef: simple_users
+    expectWarningType: allow_filtering_present
+
+  - name: warn-no-where-clause
+    query: "SELECT * FROM myapp.users"
+    schemaRef: simple_users
+    expectWarningType: no_where_clause
+
+  # ---------------------------------------------------------------------------
+  # Syntax Error Tests
+  # ---------------------------------------------------------------------------
+
+  - name: syntax-error-no-schema-validation
+    query: "SELEC * FROM users"
+    schemaRef: simple_users
+    expectSyntaxError: true
+    expectSchemaErrorCount: 0
+
+  # ---------------------------------------------------------------------------
+  # Edge Cases
+  # ---------------------------------------------------------------------------
+
+  - name: no-schema-provided
+    query: "SELECT * FROM any_keyspace.any_table"
+    expectValid: true
+    expectSchemaErrorCount: 0
+    comment: "Without schema, no schema validation occurs"
+
+  - name: default-keyspace
+    query: "SELECT id FROM users WHERE id = 1"
+    schemaRef: simple_users
+    options:
+      defaultKeyspace: myapp
+    expectValid: true
+    expectSchemaErrorCount: 0
+
+  - name: cross-keyspace-query
+    query: "SELECT id FROM analytics.events WHERE id = 1"
+    schemaRef: multi_keyspace
+    expectValid: true
+    expectSchemaErrorCount: 0
+
+  # ---------------------------------------------------------------------------
+  # Function Argument Validation Tests
+  # ---------------------------------------------------------------------------
+
+  - name: function-count-valid-star
+    query: "SELECT count(*) FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "count(*) is valid"
+
+  - name: function-count-valid-column
+    query: "SELECT count(name) FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "count(column) is valid"
+
+  - name: function-count-no-args
+    query: "SELECT count() FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: function_arg_count
+    expectSchemaErrorContains: "count"
+    comment: "count() with no args is invalid - need count(*) or count(col)"
+
+  - name: function-count-too-many-args
+    query: "SELECT count(name, email) FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorType: function_arg_count
+    expectSchemaErrorContains: "count"
+    comment: "count() takes 1 argument (or *), got 2"
+
+  - name: function-uuid-valid
+    query: "INSERT INTO myapp.users (id, name) VALUES (uuid(), 'test')"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "uuid() with no args is valid"
+
+  - name: function-now-valid
+    query: "SELECT * FROM myapp.users WHERE created_at > toTimestamp(now())"
+    schemaRef: users_with_clustering
+    expectSchemaErrorCount: 0
+    comment: "now() with no args is valid"
+
+  - name: function-token-valid
+    query: "SELECT * FROM myapp.users WHERE token(id) > 0"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "token(col) is valid"
+
+  - name: function-totimestamp-valid
+    query: "SELECT toTimestamp(now()) FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "toTimestamp(arg) is valid"
+
+  - name: function-writetime-valid
+    query: "SELECT writetime(name) FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "writetime(column) is valid"
+
+  - name: function-ttl-valid
+    query: "SELECT ttl(name) FROM myapp.users WHERE id = 1"
+    schemaRef: simple_users
+    expectSchemaErrorCount: 0
+    comment: "ttl(column) is valid"

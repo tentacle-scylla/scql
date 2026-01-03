@@ -1,0 +1,16 @@
+# Additional lexer rules to add (not keywords)
+# Format: RULE_NAME=PATTERN (using = as separator since : is in patterns)
+# These are inserted before OBJECT_NAME rule
+
+# Prepared statement placeholders
+QMARK='?'
+# NOTE: NAMED_MARKER (:name) is handled in parser as COLON OBJECT_NAME
+# to avoid lexer ambiguity with map literals like {true:false}
+
+# Not equals operator for IF conditions
+OPERATOR_NEQ='!='
+
+# Duration literal for service levels, timeouts, TTLs
+# Supports: 500ms, 1s, 2m, 1h, 1d, etc.
+# Must be before OBJECT_NAME to take precedence
+DURATION_LITERAL=[0-9]+('ns'|'us'|'\u00B5s'|'ms'|'s'|'m'|'h'|'d'|'w'|'mo'|'y')

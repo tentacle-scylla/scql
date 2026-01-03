@@ -1,0 +1,361 @@
+{
+  "description": "ScyllaDB parser grammar patches for ANTLR4",
+  "version": "5.6",
+  "patches": [
+    {
+      "type": "add_to_cql_rule",
+      "content": "| pruneMaterializedView  // ScyllaDB extension\n    | batch               // Multi-statement batch\n    | describeStatement   // DESCRIBE/DESC\n    | createServiceLevel  // Service Level management\n    | alterServiceLevel\n    | dropServiceLevel\n    | attachServiceLevel\n    | detachServiceLevel\n    | listServiceLevel"
+    },
+    {
+      "type": "add_rule",
+      "after": "applyBatch",
+      "content": "// Multi-statement batch: BEGIN BATCH stmt1 stmt2 ... APPLY BATCH\nbatch\n    : kwBegin batchType? kwBatch usingTimestampSpec? batchStatementList? kwApply kwBatch\n    ;\n\nbatchStatementList\n    : batchStatement+\n    ;\n\nbatchStatement\n    : batchInsert\n    | batchUpdate\n    | batchDelete\n    ;\n\nbatchInsert\n    : kwInsert kwInto (keyspace DOT)? table insertColumnSpec? insertValuesSpec ifNotExist? usingTtlTimestamp?\n    ;\n\nbatchUpdate\n    : kwUpdate (keyspace DOT)? table usingTtlTimestamp? kwSet assignments whereSpec (ifExist | ifSpec)?\n    ;\n\nbatchDelete\n    : kwDelete deleteColumnList? fromSpec usingTimestampSpec? whereSpec (ifExist | ifSpec)?\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "select_",
+      "content": "select_\n    : kwSelect distinctSpec? kwJson? selectElements fromSpec whereSpec? groupBySpec? orderSpec? perPartitionLimitSpec? limitSpec? allowFilteringSpec? bypassCacheSpec? usingTimeoutSpec?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "allowFilteringSpec",
+      "content": "// ScyllaDB: GROUP BY\ngroupBySpec\n    : kwGroup kwBy columnList\n    ;\n\n// ScyllaDB: BYPASS CACHE\nbypassCacheSpec\n    : kwBypass kwCache\n    ;\n\n// ScyllaDB: PER PARTITION LIMIT\nperPartitionLimitSpec\n    : kwPer kwPartition kwLimit decimalLiteral\n    ;\n\n// ScyllaDB: USING TIMEOUT\nusingTimeoutSpec\n    : kwUsing kwTimeout constant\n    ;\n\n// ScyllaDB: PRUNE MATERIALIZED VIEW\npruneMaterializedView\n    : kwPrune kwMaterialized kwView (keyspace DOT)? materializedView whereSpec? pruneUsingSpec?\n    ;\n\npruneUsingSpec\n    : kwUsing kwTimeout constant\n    | kwUsing kwConcurrency decimalLiteral\n    | kwUsing kwConcurrency decimalLiteral kwAnd kwTimeout constant\n    | kwUsing kwTimeout constant kwAnd kwConcurrency decimalLiteral\n    ;"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "dataTypeName",
+      "content": "| K_DURATION       // ScyllaDB\n    | K_VECTOR         // ScyllaDB"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "dataTypeDefinition",
+      "content": "dataTypeDefinition\n    : syntaxBracketLa dataTypeArg (syntaxComma dataTypeArg)* syntaxBracketRa\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "dataTypeDefinition",
+      "content": "// Data type arguments - supports nested types like frozen<list<int>>, map<int, set<int>>\ndataTypeArg\n    : dataType\n    | decimalLiteral\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "columnDefinition",
+      "content": "columnDefinition\n    : column dataType staticColumn? primaryKeyColumn?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "primaryKeyColumn",
+      "content": "// ScyllaDB/Cassandra: STATIC column modifier\nstaticColumn\n    : kwStatic\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "selectElement",
+      "content": "selectElement\n    : OBJECT_NAME '.' '*'\n    | OBJECT_NAME (kwAs OBJECT_NAME)?\n    | functionCall (kwAs OBJECT_NAME)?\n    | castCall (kwAs OBJECT_NAME)?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "functionCall",
+      "content": "// CAST function\ncastCall\n    : kwCast syntaxBracketLr OBJECT_NAME kwAs dataType syntaxBracketRr\n    ;"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "relationElement",
+      "content": "| OBJECT_NAME kwLike constant    // LIKE operator"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "usingTtlTimestamp",
+      "content": "usingTtlTimestamp\n    : kwUsing ttl\n    | kwUsing ttl kwAnd timestamp\n    | kwUsing timestamp\n    | kwUsing timestamp kwAnd ttl\n    | kwUsing kwTimeout constant\n    | kwUsing ttl kwAnd kwTimeout constant\n    | kwUsing timestamp kwAnd kwTimeout constant\n    | kwUsing kwTimeout constant kwAnd ttl\n    | kwUsing kwTimeout constant kwAnd timestamp\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "usingTimestampSpec",
+      "content": "usingTimestampSpec\n    : kwUsing timestamp\n    | kwUsing kwTimeout constant\n    | kwUsing timestamp kwAnd kwTimeout constant\n    | kwUsing kwTimeout constant kwAnd timestamp\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "functionCall",
+      "content": "functionCall\n    : OBJECT_NAME '(' STAR ')'\n    | OBJECT_NAME '(' functionArgs? ')'\n    | K_UUID '(' ')'\n    | kwWritetime '(' OBJECT_NAME ')'\n    | kwTtl '(' OBJECT_NAME ')'\n    | kwToken '(' functionArgs ')'\n    ;"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "constant",
+      "content": "| QMARK           // Positional placeholder\n    | namedMarker      // Named placeholder :name\n    | durationLiteral  // Duration values: 500ms, 1s, etc."
+    },
+    {
+      "type": "add_rule",
+      "after": "constant",
+      "content": "// Named placeholder for prepared statements (:paramName)\nnamedMarker\n    : COLON OBJECT_NAME\n    ;\n\n// Duration literal wrapper\ndurationLiteral\n    : DURATION_LITERAL\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "assignmentElement",
+      "content": "assignmentElement\n    : columnRef OPERATOR_EQ (constant | assignmentMap | assignmentSet | assignmentList | functionCall)\n    | columnRef OPERATOR_EQ columnRef (PLUS | MINUS) decimalLiteral\n    | columnRef OPERATOR_EQ columnRef (PLUS | MINUS) assignmentSet\n    | columnRef OPERATOR_EQ assignmentSet (PLUS | MINUS) columnRef\n    | columnRef OPERATOR_EQ columnRef (PLUS | MINUS) assignmentMap\n    | columnRef OPERATOR_EQ assignmentMap (PLUS | MINUS) columnRef\n    | columnRef OPERATOR_EQ columnRef (PLUS | MINUS) assignmentList\n    | columnRef OPERATOR_EQ assignmentList (PLUS | MINUS) columnRef\n    | columnRef syntaxBracketLs assignmentIndexKey syntaxBracketRs OPERATOR_EQ constant\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "assignmentElement",
+      "content": "// Index keys for map/list access - supports int, string, boolean, null\nassignmentIndexKey\n    : decimalLiteral\n    | stringLiteral\n    | booleanLiteral\n    | kwNull\n    ;"
+    },
+    {
+      "type": "add_keywords",
+      "content": "// ScyllaDB-specific keyword wrappers\nkwBypass    : K_BYPASS;\nkwCache     : K_CACHE;\nkwTimeout   : K_TIMEOUT;\nkwPrune     : K_PRUNE;\nkwPer       : K_PER;\nkwPartition : K_PARTITION;\nkwGroup     : K_GROUP;\nkwStatic    : K_STATIC;\nkwCast      : K_CAST;\nkwLike      : K_LIKE;\nkwWritetime : K_WRITETIME;\nkwToken     : K_TOKEN;\nkwTablets   : K_TABLETS;\nkwDefault   : K_DEFAULT;\nkwUnset     : K_UNSET;\nkwCounter   : K_COUNTER;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "assignmentList",
+      "content": "assignmentList\n    : syntaxBracketLs (assignmentListElement (syntaxComma assignmentListElement)*)? syntaxBracketRs\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "assignmentList",
+      "content": "// List elements can be constants or nested collections\nassignmentListElement\n    : constant\n    | assignmentSet\n    | assignmentList\n    | assignmentMap\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "assignmentSet",
+      "content": "assignmentSet\n    : syntaxBracketLc (assignmentSetElement (syntaxComma assignmentSetElement)*)? syntaxBracketRc\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "assignmentSet",
+      "content": "// Set elements can be constants or nested collections\nassignmentSetElement\n    : constant\n    | assignmentSet\n    | assignmentList\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "assignmentMap",
+      "content": "assignmentMap\n    : syntaxBracketLc (assignmentMapEntry (syntaxComma assignmentMapEntry)*)? syntaxBracketRc\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "assignmentMap",
+      "content": "// Map entries with flexible key/value types\nassignmentMapEntry\n    : assignmentMapKey syntaxColon assignmentMapValue\n    ;\n\nassignmentMapKey\n    : constant\n    | assignmentList\n    | assignmentSet\n    ;\n\nassignmentMapValue\n    : constant\n    | assignmentSet\n    | assignmentList\n    | assignmentMap\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "ifSpec",
+      "content": "ifSpec\n    : kwIf ifConditionList\n    | kwIf kwNot kwExists\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "ifConditionList",
+      "content": "ifConditionList\n    : (ifCondition) (kwAnd ifCondition)* (kwOr ifCondition)*\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "ifCondition",
+      "content": "// IF condition values - support constants, collections, column references, functions\nifConditionValue\n    : constant\n    | OBJECT_NAME\n    | functionCall\n    | assignmentSet\n    | assignmentList\n    | assignmentMap\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "column",
+      "content": "column\n    : OBJECT_NAME\n    | DQUOTE OBJECT_NAME DQUOTE\n    | reservedKeywordAsColumn\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "createKeyspace",
+      "content": "createKeyspace\n    : kwCreate kwKeyspace ifNotExist? keyspace kwWith kwReplication OPERATOR_EQ syntaxBracketLc replicationList syntaxBracketRc (kwAnd durableWrites)? (kwAnd tabletsSpec)?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "durableWrites",
+      "content": "// ScyllaDB tablets option\ntabletsSpec\n    : kwTablets OPERATOR_EQ syntaxBracketLc tabletsOptions syntaxBracketRc\n    ;\n\ntabletsOptions\n    : tabletsOption (syntaxComma tabletsOption)*\n    ;\n\ntabletsOption\n    : stringLiteral COLON (stringLiteral | booleanLiteral | decimalLiteral)\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "insertValuesSpec",
+      "content": "insertValuesSpec\n    : kwValues '(' expressionList ')'\n    | kwJson constant jsonDefault?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "insertValuesSpec",
+      "content": "// JSON DEFAULT NULL/UNSET option\njsonDefault\n    : kwDefault kwNull\n    | kwDefault kwUnset\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "column",
+      "content": "// Allow reserved words as unquoted column names (CQL allows this)\nreservedKeywordAsColumn\n    : K_TIME\n    | K_TIMESTAMP\n    | K_UUID\n    | K_PASSWORD\n    | K_TEXT\n    | K_KEY\n    | K_VALUE\n    | K_VALUES\n    | K_TYPE\n    | K_USER\n    | K_ROLE\n    | K_STATIC\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "reservedKeywordAsColumn",
+      "content": "// Column reference in WHERE clauses - allows reserved words as column names\ncolumnRef\n    : OBJECT_NAME\n    | reservedKeywordAsColumn\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "columnRef",
+      "content": "// Allow reserved words as table names (e.g., system_schema.keyspaces)\nreservedKeywordAsTable\n    : K_KEYSPACES\n    | K_TABLES\n    | K_COLUMNS\n    | K_TYPES\n    | K_FUNCTIONS\n    | K_AGGREGATES\n    | K_VIEWS\n    | K_INDEXES\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "fromSpecElement",
+      "content": "fromSpecElement\n    : OBJECT_NAME\n    | reservedKeywordAsTable\n    | OBJECT_NAME '.' OBJECT_NAME\n    | OBJECT_NAME '.' reservedKeywordAsTable\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "relationElement",
+      "content": "relationElement\n    : columnRef (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) constant\n    | columnRef (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) functionCall\n    | columnRef '.' OBJECT_NAME (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) constant\n    | functionCall (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) constant\n    | functionCall (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) functionCall\n    | columnRef kwIn '(' functionArgs? ')'\n    | '(' columnRef (syntaxComma columnRef)* ')' kwIn '(' assignmentTuple (syntaxComma assignmentTuple)* ')'\n    | '(' columnRef (syntaxComma columnRef)* ')' (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) (assignmentTuple (syntaxComma assignmentTuple)*)\n    | '(' columnRef (syntaxComma columnRef)* ')' (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) scyllaClusteringBound\n    | scyllaClusteringBound (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) '(' functionArgs ')'\n    | relalationContainsKey\n    | relalationContains\n    | columnRef kwLike constant\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "relalationContains",
+      "content": "relalationContains\n    : columnRef kwContains constant\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "relalationContainsKey",
+      "content": "relalationContainsKey\n    : columnRef (kwContains kwKey) constant\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "ifCondition",
+      "content": "ifCondition\n    : columnRef (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE | OPERATOR_NEQ) ifConditionValue\n    | ifConditionValue (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE | OPERATOR_NEQ) columnRef\n    | columnRef kwIn syntaxBracketLr (ifConditionValue (syntaxComma ifConditionValue)*)? syntaxBracketRr\n    | columnRef syntaxBracketLs ifConditionValue syntaxBracketRs (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE | OPERATOR_NEQ) ifConditionValue\n    | columnRef kwContains ifConditionValue\n    | columnRef kwContains kwKey ifConditionValue\n    | columnRef syntaxBracketLc ifConditionValue syntaxBracketRc (OPERATOR_EQ | OPERATOR_NEQ) ifConditionValue\n    | columnRef kwLike ifConditionValue\n    | columnRef\n    | columnRef syntaxBracketLs ifConditionValue syntaxBracketRs\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "optionHashValue",
+      "content": "optionHashValue\n    : stringLiteral\n    | floatLiteral\n    | booleanLiteral\n    | decimalLiteral\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "batchType",
+      "content": "batchType\n    : kwLogged\n    | kwUnlogged\n    | kwCounter\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "reservedKeywordAsTable",
+      "content": "// Reserved data type names that can be used as table names\nreservedTypeAsTable\n    : K_VARCHAR\n    | K_TEXT\n    | K_INT\n    | K_BIGINT\n    | K_BOOLEAN\n    | K_FLOAT\n    | K_DOUBLE\n    | K_TWO\n    | K_THREE\n    | K_ONE\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "fromSpecElement",
+      "content": "fromSpecElement\n    : OBJECT_NAME\n    | reservedKeywordAsTable\n    | reservedTypeAsTable\n    | OBJECT_NAME '.' OBJECT_NAME\n    | OBJECT_NAME '.' reservedKeywordAsTable\n    | OBJECT_NAME '.' reservedTypeAsTable\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "table",
+      "content": "table\n    : OBJECT_NAME\n    | reservedKeywordAsTable\n    | reservedTypeAsTable\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "createIndex",
+      "content": "createIndex\n    : kwCreate kwCustom? kwIndex ifNotExist? OBJECT_NAME? kwOn (keyspace DOT)? table syntaxBracketLr indexColumnSpec syntaxBracketRr indexUsing?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "createIndex",
+      "content": "// CREATE INDEX ... USING for custom index types\nindexUsing\n    : kwUsing stringLiteral indexOptions?\n    ;\n\nindexOptions\n    : kwWith kwOptions OPERATOR_EQ optionHash\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "selectElement",
+      "content": "selectElement\n    : OBJECT_NAME '.' '*'\n    | columnRef (kwAs OBJECT_NAME)?\n    | functionCall (kwAs OBJECT_NAME)?\n    | castCall (kwAs OBJECT_NAME)?\n    | qualifiedFunctionCall (kwAs OBJECT_NAME)?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "castCall",
+      "content": "// Qualified function call: keyspace.function(args)\nqualifiedFunctionCall\n    : OBJECT_NAME '.' OBJECT_NAME '(' functionArgs? ')'\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "alterTableAdd",
+      "content": "alterTableAdd\n    : kwAdd column dataType staticColumn?\n    | kwAdd syntaxBracketLr columnDefinition (syntaxComma columnDefinition)* syntaxBracketRr\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "createMaterializedView",
+      "content": "createMaterializedView\n    : kwCreate kwMaterialized kwView ifNotExist? (keyspace DOT)? materializedView kwAs kwSelect selectElements fromSpec mvWhereSpec? primaryKeyElement (kwWith materializedViewOptions)?\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "createMaterializedView",
+      "content": "// Materialized view WHERE clause with IS NOT NULL support\nmvWhereSpec\n    : kwWhere mvWhereClause (kwAnd mvWhereClause)*\n    ;\n\nmvWhereClause\n    : columnRef kwIs kwNot kwNull\n    | columnRef (OPERATOR_EQ | OPERATOR_LT | OPERATOR_GT | OPERATOR_LTE | OPERATOR_GTE) constant\n    ;"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "reservedKeywordAsColumn",
+      "content": "| K_TWO"
+    },
+    {
+      "type": "add_rule",
+      "after": "relalationContainsKey",
+      "content": "// ScyllaDB SCYLLA_CLUSTERING_BOUND for pagination\nscyllaClusteringBound\n    : K_SCYLLA_CLUSTERING_BOUND '(' functionArgs? ')'\n    | K_SCYLLA_CLUSTERING_BOUND\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "functionArgs",
+      "content": "functionArgs\n    : (constant | columnRef | functionCall | qualifiedFunctionCall) (syntaxComma (constant | columnRef | functionCall | qualifiedFunctionCall))*\n    ;"
+    },
+    {
+      "type": "add_keywords",
+      "content": "// DESCRIBE keywords (only new ones not in base grammar)\nkwDescribe    : K_DESCRIBE;\nkwCluster     : K_CLUSTER;\nkwOnly        : K_ONLY;\nkwInternals   : K_INTERNALS;\nkwPasswords   : K_PASSWORDS;\nkwSchema      : K_SCHEMA;\nkwTables      : K_TABLES;\nkwTypes       : K_TYPES;\nkwAggregates  : K_AGGREGATES;\nkwColumnfamily: K_COLUMNFAMILY;"
+    },
+    {
+      "type": "add_rule",
+      "after": "pruneMaterializedView",
+      "content": "// DESCRIBE statement (server-side since Cassandra 4.0)\ndescribeStatement\n    : (kwDescribe | kwDesc) describeTarget describeInternals?\n    ;\n\ndescribeTarget\n    : kwCluster\n    | kwFull? kwSchema\n    | kwKeyspaces\n    | kwOnly? kwKeyspace keyspace?\n    | kwTables\n    | kwTable? (keyspace DOT)? table\n    | kwColumnfamily (keyspace DOT)? table\n    | kwIndex (keyspace DOT)? OBJECT_NAME\n    | kwMaterialized kwView (keyspace DOT)? OBJECT_NAME\n    | kwTypes\n    | kwType (keyspace DOT)? OBJECT_NAME\n    | kwFunctions\n    | kwFunction (keyspace DOT)? OBJECT_NAME\n    | kwAggregates\n    | kwAggregate (keyspace DOT)? OBJECT_NAME\n    ;\n\ndescribeInternals\n    : kwWith kwInternals (kwAnd kwPasswords)?\n    ;"
+    },
+    {
+      "type": "add_keywords",
+      "content": "// Service Level keywords\nkwService   : K_SERVICE;\nkwLevel     : K_LEVEL;\nkwLevels    : K_LEVELS;\nkwAttach    : K_ATTACH;\nkwDetach    : K_DETACH;\nkwAttached  : K_ATTACHED;\nkwEffective : K_EFFECTIVE;\n// Vector Search / ANN keywords\nkwCustom    : K_CUSTOM;\nkwAnn       : K_ANN;\n// Advanced aggregate keywords\nkwReducefunc: K_REDUCEFUNC;\n// Auth extension keywords\nkwNologin   : K_NOLOGIN;\nkwUsers     : K_USERS;\nkwHashed    : K_HASHED;\n// Empty collection literal\nkwEmpty     : K_EMPTY;\n// PRUNE options\nkwConcurrency: K_CONCURRENCY;\n// Vector search permission\nkwVectorSearchIndexing: K_VECTOR_SEARCH_INDEXING;"
+    },
+    {
+      "type": "add_rule",
+      "after": "describeInternals",
+      "content": "// Service Level management (ScyllaDB QoS)\nserviceLevelName\n    : OBJECT_NAME\n    | stringLiteral\n    ;\n\nserviceLevel\n    : kwService kwLevel\n    ;\n\nserviceLevels\n    : kwService kwLevels\n    ;\n\ncreateServiceLevel\n    : kwCreate serviceLevel ifNotExist? serviceLevelName (kwWith propertyList)?\n    ;\n\nalterServiceLevel\n    : kwAlter serviceLevel serviceLevelName kwWith propertyList\n    ;\n\ndropServiceLevel\n    : kwDrop serviceLevel ifExist? serviceLevelName\n    ;\n\nattachServiceLevel\n    : kwAttach serviceLevel serviceLevelName kwTo serviceLevelName\n    ;\n\ndetachServiceLevel\n    : kwDetach serviceLevel kwFrom serviceLevelName\n    ;\n\nlistServiceLevel\n    : kwList serviceLevel serviceLevelName\n    | kwList kwAll serviceLevels\n    | kwList kwAttached serviceLevel kwOf serviceLevelName\n    | kwList kwEffective serviceLevel kwOf serviceLevelName\n    ;\n\npropertyList\n    : property (kwAnd property)*\n    ;\n\nproperty\n    : propertyName OPERATOR_EQ propertyValue\n    ;\n\npropertyName\n    : OBJECT_NAME\n    | kwTimeout\n    | kwDefault\n    ;\n\npropertyValue\n    : constant\n    | OBJECT_NAME\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "orderSpecElement",
+      "content": "orderSpecElement\n    : OBJECT_NAME (kwAsc | kwDesc)?\n    | OBJECT_NAME kwAnn kwOf vectorLiteral\n    ;"
+    },
+    {
+      "type": "add_rule",
+      "after": "orderSpecElement",
+      "content": "// Vector literal for ANN queries: [0.1, 0.2, 0.3]\nvectorLiteral\n    : syntaxBracketLs (floatLiteral | decimalLiteral) (syntaxComma (floatLiteral | decimalLiteral))* syntaxBracketRs\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "createAggregate",
+      "content": "createAggregate\n    : kwCreate orReplace? kwAggregate ifNotExist? (keyspace DOT)? aggregate syntaxBracketLr dataType syntaxBracketRr\n      kwSfunc function_ kwStype dataType\n      (kwReducefunc function_)?\n      (kwFinalfunc function_)?\n      (kwInitcond initCondDefinition)?\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "dropAggregate",
+      "content": "dropAggregate\n    : kwDrop kwAggregate ifExist? (keyspace DOT)? aggregate (syntaxBracketLr dataType syntaxBracketRr)?\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "roleWithOptions",
+      "content": "roleWithOptions\n    : kwPassword OPERATOR_EQ stringLiteral\n    | kwHashed kwPassword OPERATOR_EQ stringLiteral\n    | kwLogin OPERATOR_EQ booleanLiteral\n    | kwSuperuser OPERATOR_EQ booleanLiteral\n    | kwOptions OPERATOR_EQ optionHash\n    | kwNologin OPERATOR_EQ booleanLiteral\n    ;"
+    },
+    {
+      "type": "replace_rule",
+      "rule": "listRoles",
+      "content": "listRoles\n    : kwList kwAll? kwRoles (kwOf role)? kwNorecursive?\n    ;"
+    },
+    {
+      "type": "add_to_cql_rule",
+      "content": "| listUsers           // LIST USERS"
+    },
+    {
+      "type": "add_rule",
+      "after": "listRoles",
+      "content": "// LIST USERS statement\nlistUsers\n    : kwList kwUsers\n    ;"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "reservedKeywordAsTable",
+      "content": "| K_USERS"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "constant",
+      "content": "| kwEmpty          // Empty collection literal"
+    },
+    {
+      "type": "add_to_rule",
+      "rule": "priviledge",
+      "content": "| kwVectorSearchIndexing   // Vector search indexing permission"
+    }
+  ]
+}
