@@ -1,5 +1,10 @@
 # scql
 
+[![CI](https://github.com/tentacle-scylla/scql/workflows/CI/badge.svg)](https://github.com/tentacle-scylla/scql/actions)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tentacle-scylla/scql)](https://goreportcard.com/report/github.com/tentacle-scylla/scql)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/tentacle-scylla/scql)](https://pkg.go.dev/github.com/tentacle-scylla/scql)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Go library for parsing, linting, and formatting CQL (Cassandra Query Language) with full ScyllaDB support.
 
 Built on ANTLR4 with grammar patches for ScyllaDB-specific syntax.
