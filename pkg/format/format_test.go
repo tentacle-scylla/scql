@@ -220,7 +220,7 @@ func TestFormatCreateTableWithClusteringOrder(t *testing.T) {
 }
 
 func TestFormatCreateTablePreservesColumnNames(t *testing.T) {
-	// Test that keyword-like column names are preserved lowercase
+	// Test that keyword-like column names are preserved lowercase (cqlsh style)
 	input := `CREATE TABLE data (id uuid PRIMARY KEY, value blob, key text, type int);`
 
 	output, err := PrettyString(input)
@@ -230,15 +230,15 @@ func TestFormatCreateTablePreservesColumnNames(t *testing.T) {
 
 	t.Logf("CREATE TABLE with keyword column names:\n%s", output)
 
-	// Column names should be lowercase
-	if strings.Contains(output, "VALUE BLOB") {
-		t.Error("Column name 'value' should not be uppercased")
+	// Column names and types should be lowercase (cqlsh style)
+	if !strings.Contains(output, "value blob") {
+		t.Error("Column name and type should be lowercase: 'value blob'")
 	}
-	if !strings.Contains(output, "value BLOB") {
-		t.Error("Column name 'value' should be preserved lowercase")
+	if !strings.Contains(output, "key text") {
+		t.Error("Column name and type should be lowercase: 'key text'")
 	}
-	if strings.Contains(output, "KEY TEXT") && !strings.Contains(output, "PRIMARY KEY") {
-		t.Error("Column name 'key' should not be uppercased")
+	if !strings.Contains(output, "type int") {
+		t.Error("Column name and type should be lowercase: 'type int'")
 	}
 }
 
@@ -252,14 +252,14 @@ func TestFormatCreateType(t *testing.T) {
 
 	t.Logf("CREATE TYPE:\n%s", output)
 
-	// Check structure
+	// Check structure (cqlsh style: 4-space indentation, lowercase types)
 	if !strings.Contains(output, "CREATE TYPE address (") {
 		t.Error("Should contain CREATE TYPE header")
 	}
-	if !strings.Contains(output, "  street TEXT,") {
-		t.Error("Should contain indented field definitions")
+	if !strings.Contains(output, "    street text,") {
+		t.Error("Should contain 4-space indented field definitions with lowercase types")
 	}
-	if !strings.Contains(output, "  country TEXT\n)") {
+	if !strings.Contains(output, "    country text\n)") {
 		t.Error("Last field should not have trailing comma")
 	}
 }
@@ -366,8 +366,8 @@ func TestFormatCreateKeyspace(t *testing.T) {
 	if !strings.Contains(output, "WITH replication =") {
 		t.Error("Should contain WITH replication")
 	}
-	if !strings.Contains(output, "AND DURABLE_WRITES") {
-		t.Error("Should contain durable_writes option")
+	if !strings.Contains(output, "AND durable_writes") {
+		t.Error("Should contain durable_writes option (lowercase, cqlsh style)")
 	}
 }
 
