@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/codegen"
-	"github.com/pierre-borckmans/scql/codegen/util"
+	"github.com/tentacle-scylla/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen/util"
 )
 
 const scyllaDBRepoURL = "https://github.com/scylladb/scylladb.git"

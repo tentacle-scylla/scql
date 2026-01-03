@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/gen/cqldata"
+	"github.com/tentacle-scylla/scql/gen/cqldata"
 )
 
 // FunctionSignature describes the expected arguments for a built-in function.

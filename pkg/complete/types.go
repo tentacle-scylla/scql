@@ -1,7 +1,7 @@
 // Package complete provides context-aware CQL auto-completion.
 package complete
 
-import "github.com/pierre-borckmans/scql/pkg/schema"
+import "github.com/tentacle-scylla/scql/pkg/schema"
 
 // CompletionKind identifies the type of completion item.
 type CompletionKind string

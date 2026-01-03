@@ -1,8 +1,8 @@
 package lint
 
 import (
-	"github.com/pierre-borckmans/scql/pkg/parse"
-	"github.com/pierre-borckmans/scql/pkg/types"
+	"github.com/tentacle-scylla/scql/pkg/parse"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 // Check validates CQL and returns any errors found

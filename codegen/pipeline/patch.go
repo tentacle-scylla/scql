@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/codegen"
-	"github.com/pierre-borckmans/scql/codegen/util"
+	"github.com/tentacle-scylla/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen/util"
 )
 
 // ParserPatch represents a patch to apply to the parser grammar.

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/antlr4-go/antlr/v4"
-	parser "github.com/pierre-borckmans/scql/gen/parser"
+	parser "github.com/tentacle-scylla/scql/gen/parser"
 )
 
 // TestParseQueries runs all .cql test files through the parser

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/pierre-borckmans/scql/codegen"
-	"github.com/pierre-borckmans/scql/codegen/util"
+	"github.com/tentacle-scylla/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen/util"
 )
 
 // Diff shows differences between ANTLR4 and ScyllaDB grammars.

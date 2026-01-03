@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pierre-borckmans/scql/codegen"
-	"github.com/pierre-borckmans/scql/codegen/pipeline"
+	"github.com/tentacle-scylla/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen/pipeline"
 )
 
 func main() {

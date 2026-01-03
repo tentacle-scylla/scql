@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/pierre-borckmans/scql/pkg/schema"
+	"github.com/tentacle-scylla/scql/pkg/schema"
 	"gopkg.in/yaml.v3"
 )
 

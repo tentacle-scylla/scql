@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/pierre-borckmans/scql/codegen"
-	"github.com/pierre-borckmans/scql/codegen/grammar"
-	"github.com/pierre-borckmans/scql/codegen/util"
+	"github.com/tentacle-scylla/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen/grammar"
+	"github.com/tentacle-scylla/scql/codegen/util"
 )
 
 // Extract extracts keywords and rules from both grammars.

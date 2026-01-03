@@ -9,9 +9,9 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/pierre-borckmans/scql/pkg/format"
-	"github.com/pierre-borckmans/scql/pkg/lint"
-	"github.com/pierre-borckmans/scql/pkg/parse"
+	"github.com/tentacle-scylla/scql/pkg/format"
+	"github.com/tentacle-scylla/scql/pkg/lint"
+	"github.com/tentacle-scylla/scql/pkg/parse"
 )
 
 func main() {

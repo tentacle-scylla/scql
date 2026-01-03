@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/pierre-borckmans/scql/pkg/schema"
+	"github.com/tentacle-scylla/scql/pkg/schema"
 )
 
 // GetHoverInfo returns hover information for the token at the given position.

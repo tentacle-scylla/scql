@@ -4,8 +4,8 @@
 package analyze
 
 import (
-	"github.com/pierre-borckmans/scql/pkg/schema"
-	"github.com/pierre-borckmans/scql/pkg/types"
+	"github.com/tentacle-scylla/scql/pkg/schema"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 // Result contains the result of analyzing a CQL query.

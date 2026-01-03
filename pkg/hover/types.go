@@ -1,7 +1,7 @@
 // Package hover provides type information for CQL tokens at cursor positions.
 package hover
 
-import "github.com/pierre-borckmans/scql/pkg/schema"
+import "github.com/tentacle-scylla/scql/pkg/schema"
 
 // HoverKind identifies the type of hover target.
 type HoverKind string

@@ -3,7 +3,7 @@ package complete
 import (
 	"strings"
 
-	"github.com/pierre-borckmans/scql/gen/cqldata"
+	"github.com/tentacle-scylla/scql/gen/cqldata"
 )
 
 // GetFunctionsForType returns functions that produce the given type.

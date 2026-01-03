@@ -6,8 +6,8 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 
-	parser "github.com/pierre-borckmans/scql/gen/parser"
-	"github.com/pierre-borckmans/scql/pkg/hover"
+	parser "github.com/tentacle-scylla/scql/gen/parser"
+	"github.com/tentacle-scylla/scql/pkg/hover"
 )
 
 // TokenType identifies the semantic type of a token for syntax highlighting.

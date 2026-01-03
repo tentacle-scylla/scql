@@ -3,7 +3,7 @@ package lint
 import (
 	"testing"
 
-	"github.com/pierre-borckmans/scql/pkg/types"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 func TestCheck(t *testing.T) {

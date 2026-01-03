@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/pierre-borckmans/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen"
 )
 
 // Test runs the test coverage for the generated parser.

@@ -4,25 +4,25 @@
 // This is a convenience package that re-exports the main types and functions
 // from the sub-packages. For more control, import the sub-packages directly:
 //
-//   - github.com/pierre-borckmans/scql/pkg/parse    - Parsing CQL statements
-//   - github.com/pierre-borckmans/scql/pkg/format   - Formatting CQL statements
-//   - github.com/pierre-borckmans/scql/pkg/lint     - Linting CQL statements
-//   - github.com/pierre-borckmans/scql/pkg/types    - Common types (Error, StatementType)
-//   - github.com/pierre-borckmans/scql/pkg/schema   - Schema types
-//   - github.com/pierre-borckmans/scql/pkg/complete - Auto-completion
-//   - github.com/pierre-borckmans/scql/pkg/hover    - Hover information
+//   - github.com/tentacle-scylla/scql/pkg/parse    - Parsing CQL statements
+//   - github.com/tentacle-scylla/scql/pkg/format   - Formatting CQL statements
+//   - github.com/tentacle-scylla/scql/pkg/lint     - Linting CQL statements
+//   - github.com/tentacle-scylla/scql/pkg/types    - Common types (Error, StatementType)
+//   - github.com/tentacle-scylla/scql/pkg/schema   - Schema types
+//   - github.com/tentacle-scylla/scql/pkg/complete - Auto-completion
+//   - github.com/tentacle-scylla/scql/pkg/hover    - Hover information
 package scql
 
 import (
-	"github.com/pierre-borckmans/scql/pkg/analyze"
-	"github.com/pierre-borckmans/scql/pkg/complete"
-	"github.com/pierre-borckmans/scql/pkg/format"
-	"github.com/pierre-borckmans/scql/pkg/hover"
-	"github.com/pierre-borckmans/scql/pkg/lint"
-	"github.com/pierre-borckmans/scql/pkg/parse"
-	"github.com/pierre-borckmans/scql/pkg/schema"
-	"github.com/pierre-borckmans/scql/pkg/tokenize"
-	"github.com/pierre-borckmans/scql/pkg/types"
+	"github.com/tentacle-scylla/scql/pkg/analyze"
+	"github.com/tentacle-scylla/scql/pkg/complete"
+	"github.com/tentacle-scylla/scql/pkg/format"
+	"github.com/tentacle-scylla/scql/pkg/hover"
+	"github.com/tentacle-scylla/scql/pkg/lint"
+	"github.com/tentacle-scylla/scql/pkg/parse"
+	"github.com/tentacle-scylla/scql/pkg/schema"
+	"github.com/tentacle-scylla/scql/pkg/tokenize"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 // Re-export types

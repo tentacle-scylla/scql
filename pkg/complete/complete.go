@@ -4,8 +4,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/pkg/analyze"
-	"github.com/pierre-borckmans/scql/pkg/schema"
+	"github.com/tentacle-scylla/scql/pkg/analyze"
+	"github.com/tentacle-scylla/scql/pkg/schema"
 )
 
 // GetCompletions returns completion items for the given context.

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/codegen/util"
+	"github.com/tentacle-scylla/scql/codegen/util"
 )
 
 // ExtractANTLR4Keywords extracts K_* keywords from an ANTLR4 lexer file.

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pierre-borckmans/scql/pkg/parse"
+	"github.com/tentacle-scylla/scql/pkg/parse"
 )
 
 func TestCompactString(t *testing.T) {

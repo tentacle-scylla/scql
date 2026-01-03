@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/pierre-borckmans/scql/pkg/types"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 func TestParse(t *testing.T) {

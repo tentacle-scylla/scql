@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/pkg/schema"
-	"github.com/pierre-borckmans/scql/pkg/types"
+	"github.com/tentacle-scylla/scql/pkg/schema"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 // Analyze performs full analysis of a CQL query with optional schema validation.

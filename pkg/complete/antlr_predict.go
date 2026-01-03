@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/antlr4-go/antlr/v4"
-	parser "github.com/pierre-borckmans/scql/gen/parser"
+	parser "github.com/tentacle-scylla/scql/gen/parser"
 )
 
 // PredictedTokens contains the result of ANTLR-based token prediction.

@@ -6,8 +6,8 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 
-	parser "github.com/pierre-borckmans/scql/gen/parser"
-	"github.com/pierre-borckmans/scql/pkg/types"
+	parser "github.com/tentacle-scylla/scql/gen/parser"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 // Result contains the result of parsing a CQL statement

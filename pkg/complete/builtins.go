@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"strings"
 
-	"github.com/pierre-borckmans/scql/gen/cqldata"
+	"github.com/tentacle-scylla/scql/gen/cqldata"
 	"gopkg.in/yaml.v3"
 )
 

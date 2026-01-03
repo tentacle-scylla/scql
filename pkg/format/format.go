@@ -5,9 +5,9 @@ import (
 
 	"github.com/antlr4-go/antlr/v4"
 
-	parser "github.com/pierre-borckmans/scql/gen/parser"
-	"github.com/pierre-borckmans/scql/pkg/parse"
-	"github.com/pierre-borckmans/scql/pkg/types"
+	parser "github.com/tentacle-scylla/scql/gen/parser"
+	"github.com/tentacle-scylla/scql/pkg/parse"
+	"github.com/tentacle-scylla/scql/pkg/types"
 )
 
 // Style defines the formatting style for CQL output

@@ -1,7 +1,7 @@
 package pipeline
 
 import (
-	"github.com/pierre-borckmans/scql/codegen"
+	"github.com/tentacle-scylla/scql/codegen"
 )
 
 // All runs all pipeline steps in order.
