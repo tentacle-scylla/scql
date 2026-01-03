@@ -261,7 +261,7 @@ func (e *referenceExtractor) EnterFunctionCall(ctx *parser.FunctionCallContext) 
 	} else if args := ctx.FunctionArgs(); args != nil {
 		// Count arguments by counting elements in FunctionArgs
 		// Arguments can be constants, column refs, or nested function calls
-		argsCtx := args.(*parser.FunctionArgsContext)
+		argsCtx, _ := args.(*parser.FunctionArgsContext)
 		argCount := 0
 		argCount += len(argsCtx.AllConstant())
 		argCount += len(argsCtx.AllColumnRef())
