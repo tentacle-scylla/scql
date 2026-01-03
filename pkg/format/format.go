@@ -1166,9 +1166,9 @@ func replaceWholeWord(s, old, new string) string {
 		}
 	}
 
-	// Keep the original if no changes for case-sensitivity
+	// Preserve original casing if same word (case-insensitive match)
 	if strings.EqualFold(result, s) && result != s {
-		// Preserve original casing if same word
+		return s
 	}
 
 	_ = lowerS // silence unused warning

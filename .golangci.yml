@@ -1,3 +1,5 @@
+version: 2
+
 linters:
   enable:
     - errcheck
@@ -9,7 +11,20 @@ linters:
 linters-settings:
   errcheck:
     check-type-assertions: true
+    exclude-functions:
+      - (io.Closer).Close
+      - fmt.Fprint
+      - fmt.Fprintf
+      - fmt.Fprintln
 
 issues:
-  exclude-dirs:
-    - generated_parser
+  exclude-rules:
+    - path: codegen/
+      linters:
+        - errcheck
+        - staticcheck
+    - path: gen/
+      linters:
+        - errcheck
+        - staticcheck
+        - unused

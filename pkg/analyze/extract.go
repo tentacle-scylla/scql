@@ -34,7 +34,6 @@ type referenceExtractor struct {
 	inOrderBy bool
 	inUpdate  bool
 	inInsert  bool
-	inGroupBy bool
 }
 
 func newReferenceExtractor() *referenceExtractor {

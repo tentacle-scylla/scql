@@ -43,7 +43,7 @@ func (p *predictingErrorListener) SyntaxError(
 		// Use defer/recover since GetExpectedTokens can panic in some states
 		func() {
 			defer func() {
-				recover() // Silently recover from any panic
+				_ = recover() // Silently recover from any panic
 			}()
 			p.expectedTokens = pr.GetExpectedTokens()
 			p.symbolicNames = pr.GetSymbolicNames()
@@ -61,7 +61,7 @@ func (p *predictingErrorListener) captureFromParser(pr antlr.Parser) {
 	p.parser = pr
 	func() {
 		defer func() {
-			recover()
+			_ = recover()
 		}()
 		p.expectedTokens = pr.GetExpectedTokens()
 		p.symbolicNames = pr.GetSymbolicNames()
@@ -211,7 +211,7 @@ func IsTokenValidAtPosition(query string, position int, token string) bool {
 	// Parse
 	func() {
 		defer func() {
-			recover() // Handle any panics
+			_ = recover() // Handle any panics
 		}()
 		_ = p.Root()
 	}()
